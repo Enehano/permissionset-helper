@@ -27,13 +27,13 @@ Rámcový obsah:
   * představení cíle - práce s oprávněními
 
 ## 2. Analýza (konkrétní problém) (mozna analyza a navrh dohromady? potom mozna popis technologie presunout do implementace)
-      1. současné řešení
-      2. cílová skupina
-      3. (use case)
-      4. funkční požadavky
-      5. nefunkční požadavky
-      6. systémové požadavky
-      7. XML, technický věci
+  1. současné řešení
+  2. cílová skupina
+  3. (use case)
+  4. funkční požadavky
+  5. nefunkční požadavky
+  6. systémové požadavky
+  7. XML, technický věci
 
 ## 3. Návrh (= zmeny)
   1. nástroje a technologie
