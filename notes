@@ -1,0 +1,10 @@
+# xml binding
+
+xjc -p "package" "path/to.xsd"
+
+# namespaces
+
+there is custom xmlns="http://soap.sforce.com/2006/04/metadata" in the profiles xml - how to ignore it?
+
+gotta use
+SAXParserFactory.setNamespaceAware(false)

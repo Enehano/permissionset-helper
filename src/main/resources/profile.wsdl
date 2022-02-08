@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions targetNamespace="http://soap.sforce.com/2006/04/metadata"
+             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+             xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+             xmlns:tns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+    <xsd:schema elementFormDefault="qualified" targetNamespace="http://soap.sforce.com/2006/04/metadata">
+        <xsd:complexType name="Metadata">
+            <xsd:sequence>
+                <xsd:element name="fullName" minOccurs="0" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="Profile">
+            <xsd:complexContent>
+                <xsd:extension base="tns:Metadata">
+                    <xsd:sequence>
+                        <xsd:element name="applicationVisibilities" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileApplicationVisibility"/>
+<!--                        <xsd:element name="categoryGroupVisibilities" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileCategoryGroupVisibility"/>-->
+                        <xsd:element name="classAccesses" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileApexClassAccess"/>
+<!--                        <xsd:element name="custom" minOccurs="0" type="xsd:boolean"/>-->
+                        <xsd:element name="customMetadataTypeAccesses" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileCustomMetadataTypeAccess"/>
+                        <xsd:element name="customPermissions" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileCustomPermissions"/>
+<!--                        <xsd:element name="customSettingAccesses" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileCustomSettingAccess"/>-->
+<!--                        <xsd:element name="description" minOccurs="0" type="xsd:string"/>-->
+<!--                        <xsd:element name="externalDataSourceAccesses" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileExternalDataSourceAccess"/>-->
+                        <xsd:element name="fieldPermissions" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileFieldLevelSecurity"/>
+<!--                        <xsd:element name="flowAccesses" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileFlowAccess"/>-->
+                        <xsd:element name="layoutAssignments" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileLayoutAssignment"/>
+<!--                        <xsd:element name="loginFlows" minOccurs="0" maxOccurs="unbounded" type="tns:LoginFlow"/>-->
+<!--                        <xsd:element name="loginHours" minOccurs="0" type="tns:ProfileLoginHours"/>-->
+<!--                        <xsd:element name="loginIpRanges" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileLoginIpRange"/>-->
+                        <xsd:element name="objectPermissions" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileObjectPermissions"/>
+                        <xsd:element name="pageAccesses" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileApexPageAccess"/>
+<!--                        <xsd:element name="profileActionOverrides" minOccurs="0" maxOccurs="unbounded"-->
+<!--                                     type="tns:ProfileActionOverride"/>-->
+                        <xsd:element name="recordTypeVisibilities" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileRecordTypeVisibility"/>
+                        <xsd:element name="tabVisibilities" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileTabVisibility"/>
+<!--                        <xsd:element name="userLicense" minOccurs="0" type="xsd:string"/>-->
+                        <xsd:element name="userPermissions" minOccurs="0" maxOccurs="unbounded"
+                                     type="tns:ProfileUserPermission"/>
+                    </xsd:sequence>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileApplicationVisibility">
+            <xsd:sequence>
+                <xsd:element name="application" type="xsd:string"/>
+                <xsd:element name="default" type="xsd:boolean"/>
+                <xsd:element name="visible" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileCategoryGroupVisibility">
+            <xsd:sequence>
+                <xsd:element name="dataCategories" minOccurs="0" maxOccurs="unbounded" type="xsd:string"/>
+                <xsd:element name="dataCategoryGroup" type="xsd:string"/>
+                <xsd:element name="visibility" type="tns:CategoryGroupVisibility"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:simpleType name="CategoryGroupVisibility">
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="ALL"/>
+                <xsd:enumeration value="NONE"/>
+                <xsd:enumeration value="CUSTOM"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:complexType name="ProfileApexClassAccess">
+            <xsd:sequence>
+                <xsd:element name="apexClass" type="xsd:string"/>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileCustomMetadataTypeAccess">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="name" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileCustomPermissions">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="name" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileCustomSettingAccess">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="name" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileExternalDataSourceAccess">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="externalDataSource" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileFieldLevelSecurity">
+            <xsd:sequence>
+                <xsd:element name="editable" type="xsd:boolean"/>
+                <xsd:element name="field" type="xsd:string"/>
+                <xsd:element name="readable" minOccurs="0" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileFlowAccess">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="flow" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileLayoutAssignment">
+            <xsd:sequence>
+                <xsd:element name="layout" type="xsd:string"/>
+                <xsd:element name="recordType" minOccurs="0" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="LoginFlow">
+            <xsd:sequence>
+                <xsd:element name="flow" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="flowType" type="tns:LoginFlowType"/>
+                <xsd:element name="friendlyName" type="xsd:string"/>
+                <xsd:element name="uiLoginFlowType" type="tns:UiLoginFlowType"/>
+                <xsd:element name="useLightningRuntime" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="vfFlowPage" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="vfFlowPageTitle" minOccurs="0" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:simpleType name="LoginFlowType">
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="UI"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:simpleType name="UiLoginFlowType">
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="VisualWorkflow"/>
+                <xsd:enumeration value="VisualForce"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:complexType name="ProfileLoginHours">
+            <xsd:sequence>
+                <xsd:element name="fridayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="fridayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="mondayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="mondayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="saturdayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="saturdayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="sundayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="sundayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="thursdayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="thursdayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="tuesdayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="tuesdayStart" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="wednesdayEnd" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="wednesdayStart" minOccurs="0" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileLoginIpRange">
+            <xsd:sequence>
+                <xsd:element name="description" minOccurs="0" type="xsd:string"/>
+                <xsd:element name="endAddress" type="xsd:string"/>
+                <xsd:element name="startAddress" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileApexPageAccess">
+            <xsd:sequence>
+                <xsd:element name="apexPage" type="xsd:string"/>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileRecordTypeVisibility">
+            <xsd:sequence>
+                <xsd:element name="default" type="xsd:boolean"/>
+                <xsd:element name="personAccountDefault" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="recordType" type="xsd:string"/>
+                <xsd:element name="visible" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileTabVisibility">
+            <xsd:sequence>
+                <xsd:element name="tab" type="xsd:string"/>
+                <xsd:element name="visibility" type="tns:TabVisibility"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:simpleType name="TabVisibility">
+            <xsd:restriction base="xsd:string">
+                <xsd:enumeration value="Hidden"/>
+                <xsd:enumeration value="DefaultOff"/>
+                <xsd:enumeration value="DefaultOn"/>
+            </xsd:restriction>
+        </xsd:simpleType>
+        <xsd:complexType name="ProfileUserPermission">
+            <xsd:sequence>
+                <xsd:element name="enabled" type="xsd:boolean"/>
+                <xsd:element name="name" type="xsd:string"/>
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:complexType name="ProfileObjectPermissions">
+            <xsd:sequence>
+                <xsd:element name="allowCreate" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="allowDelete" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="allowEdit" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="allowRead" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="modifyAllRecords" minOccurs="0" type="xsd:boolean"/>
+                <xsd:element name="object" type="xsd:string"/>
+                <xsd:element name="viewAllRecords" minOccurs="0" type="xsd:boolean"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:schema>
+    </types>
+</definitions>
