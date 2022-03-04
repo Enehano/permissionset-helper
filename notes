@@ -2,9 +2,12 @@
 
 xjc -p "package" "path/to.xsd"
 
-# namespaces
+fields to add:
+externalDataSourceAccesses
+flowAccesses
+customSettingAccesses
 
-there is custom xmlns="http://soap.sforce.com/2006/04/metadata" in the profiles xml - how to ignore it?
+-- not in sample (Kofola) project
 
-gotta use
-SAXParserFactory.setNamespaceAware(false)
+* how do negative values look like? is it just the booleans switched? 
+* how does blank profile look like? it is just that the fields are deleted?
