@@ -8,13 +8,11 @@
 
 package entity;
 
+import jakarta.xml.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlType;
+import java.util.Objects;
 
 
 /**
@@ -208,7 +206,6 @@ import jakarta.xml.bind.annotation.XmlType;
     "applicationVisibilities",
     "categoryGroupVisibilities",
     "classAccesses",
-    "custom",
     "customMetadataTypeAccesses",
     "customPermissions",
     "fieldPermissions",
@@ -218,22 +215,21 @@ import jakarta.xml.bind.annotation.XmlType;
     "pageAccesses",
     "recordTypeVisibilities",
     "tabVisibilities",
-    "userLicense",
     "userPermissions"
 })
 @XmlRootElement(name = "PermissionSet")
 public class PermissionSet {
 
-    @XmlElement(required = true)
-    protected String description;
-    @XmlElement(required = true)
-    protected String label;
-    @XmlElement(required = true)
-    protected String license;
-//    @XmlElement(required = true)   // deprecated
-//    protected String userLicense;
-    @XmlElement(required =  true)
-    protected boolean hasActivationRequired;
+//    @XmlElement(required = true)
+//    protected String description;
+//    @XmlElement(required = true)
+//    protected String label;
+//    @XmlElement(required = true)
+//    protected String license;
+////    @XmlElement(required = true)   // deprecated
+////    protected String userLicense;
+//    @XmlElement(required =  true)
+//    protected boolean hasActivationRequired;
 
     @XmlElement(required = true)
     protected List<ApplicationVisibilities> applicationVisibilities;
@@ -690,5 +686,30 @@ public class PermissionSet {
             userPermissions = new ArrayList<UserPermissions>();
         }
         return this.userPermissions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PermissionSet that = (PermissionSet) o;
+        return Objects.equals(applicationVisibilities, that.applicationVisibilities) &&
+                Objects.equals(categoryGroupVisibilities, that.categoryGroupVisibilities) &&
+                Objects.equals(classAccesses, that.classAccesses) &&
+                Objects.equals(customMetadataTypeAccesses, that.customMetadataTypeAccesses) &&
+                Objects.equals(customPermissions, that.customPermissions) &&
+                Objects.equals(fieldPermissions, that.fieldPermissions) &&
+                Objects.equals(layoutAssignments, that.layoutAssignments) &&
+                Objects.equals(loginIpRanges, that.loginIpRanges) &&
+                Objects.equals(objectPermissions, that.objectPermissions) &&
+                Objects.equals(pageAccesses, that.pageAccesses) &&
+                Objects.equals(recordTypeVisibilities, that.recordTypeVisibilities) &&
+                Objects.equals(tabVisibilities, that.tabVisibilities) &&
+                Objects.equals(userPermissions, that.userPermissions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(applicationVisibilities, categoryGroupVisibilities, classAccesses, customMetadataTypeAccesses, customPermissions, fieldPermissions, layoutAssignments, loginIpRanges, objectPermissions, pageAccesses, recordTypeVisibilities, tabVisibilities, userPermissions);
     }
 }
