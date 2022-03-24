@@ -6,10 +6,10 @@ package entity;//
 //
 
 
+import jakarta.xml.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import jakarta.xml.bind.annotation.*;
 
 
 /**
@@ -207,8 +207,8 @@ import jakarta.xml.bind.annotation.*;
     "customMetadataTypeAccesses",
     "customPermissions",
     "fieldPermissions",
-    "layoutAssignments",
-    "loginIpRanges",
+        // "layoutAssignments",
+        // "loginIpRanges",
     "objectPermissions",
     "pageAccesses",
     "recordTypeVisibilities",

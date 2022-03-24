@@ -5,6 +5,8 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlType;
 
+import java.util.Objects;
+
 /**
      * <p>Java class for anonymous complex type.
      *
@@ -171,4 +173,22 @@ import jakarta.xml.bind.annotation.XmlType;
             this.viewAllRecords = value;
         }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ObjectPermissions that = (ObjectPermissions) o;
+        return allowCreate == that.allowCreate &&
+                allowDelete == that.allowDelete &&
+                allowEdit == that.allowEdit &&
+                allowRead == that.allowRead &&
+                modifyAllRecords == that.modifyAllRecords &&
+                viewAllRecords == that.viewAllRecords &&
+                object.equals(that.object);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(allowCreate, allowDelete, allowEdit, allowRead, modifyAllRecords, object, viewAllRecords);
+    }
+}

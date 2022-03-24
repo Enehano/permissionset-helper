@@ -5,6 +5,8 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlType;
 
+import java.util.Objects;
+
 /**
      * <p>Java class for anonymous complex type.
      *
@@ -76,4 +78,17 @@ import jakarta.xml.bind.annotation.XmlType;
             this.name = value;
         }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CustomPermissions that = (CustomPermissions) o;
+        return enabled == that.enabled &&
+                name.equals(that.name);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(enabled, name);
+    }
+}
