@@ -26,15 +26,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author AO
- */
 public class Step3TransformedFilenames extends WizardPage {
 
     private final Logger log = LogManager.getLogger(Step3TransformedFilenames.class.getSimpleName());
 
     WizardSettings settings;
-    // Variables declaration - do not
+
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
 
@@ -48,8 +45,6 @@ public class Step3TransformedFilenames extends WizardPage {
         initComponents();
     }
 
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -127,6 +122,5 @@ public class Step3TransformedFilenames extends WizardPage {
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
         );
-    }// </editor-fold>
-    // End of variables declaration
+    }
 }

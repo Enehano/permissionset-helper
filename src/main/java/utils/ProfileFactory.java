@@ -16,6 +16,8 @@ public class ProfileFactory {
         this.rw = rw;
     }
 
+    // TODO: 24.03.2022 Filter fields with all negative values from profiles
+
     public static Map<String, PermissionSet> processPermissionSets(WizardSettings settings) {
         Map<String, Profile> profilesMap = (Map<String, Profile>) settings.get("profilesMap");
         List<String> permCatToMove = (List<String>) settings.get("permCatToMove");

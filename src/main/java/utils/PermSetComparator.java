@@ -41,7 +41,7 @@ public class PermSetComparator implements Comparator<PermissionSet> {
         HashSet<T> hashSet1 = new HashSet<>(permissions1);
         HashSet<T> hashSet2 = new HashSet<>(permissions2);
 
-        if (hashSet1.containsAll(hashSet2)) {
+        if (hashSet1.containsAll(hashSet2) && hashSet2.containsAll(hashSet1)) {
             return 0;
         } else {
             return -1;

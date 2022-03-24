@@ -130,10 +130,7 @@ import java.util.Objects;
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RecordTypeVisibilities that = (RecordTypeVisibilities) o;
-        return _default == that._default &&
-                visible == that.visible &&
-                personAccountDefault.equals(that.personAccountDefault) &&
-                recordType.equals(that.recordType);
+        return _default == that._default && visible == that.visible && Objects.equals(personAccountDefault, that.personAccountDefault) && Objects.equals(recordType, that.recordType);
     }
 
     @Override

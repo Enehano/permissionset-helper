@@ -33,8 +33,8 @@ public class ResourceReaderWriter {
         if (fileList == null || fileList.length == 0) {
             throw new IOException("Provided input path is empty or not a directory");
         }
-
         return Arrays.stream(fileList)
+                .sorted()
                 .collect(
                         LinkedHashMap::new,                           // Supplier
                         (map, file) -> {                              // Accumulator

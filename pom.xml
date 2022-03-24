@@ -8,7 +8,6 @@
     <artifactId>SFPermHelper</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-
     <repositories>
         <repository>
             <id>lobosstudios-nexus-java-dev</id>
@@ -65,33 +64,6 @@
 
     <build>
     <plugins>
-    <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>jaxb2-maven-plugin</artifactId>
-        <version>3.0.0</version>
-        <executions>
-            <execution>
-                <id>schemagen</id>
-                <goals>
-                    <goal>schemagen</goal>
-                </goals>
-            </execution>
-        </executions>
-        <configuration>
-            <sources>
-                <source>src/main/java/jaxb/gen</source>
-            </sources>
-            <outputDirectory>src/main/resources</outputDirectory>
-            <clearOutputDir>false</clearOutputDir>
-            <transformSchemas>
-                <transformSchema>
-                    <uri>/jaxb/gen</uri>
-                    <toPrefix>user</toPrefix>
-                    <toFile>user-gen.xsd</toFile>
-                </transformSchema>
-            </transformSchemas>
-        </configuration>
-    </plugin>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
