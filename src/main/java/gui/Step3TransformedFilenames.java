@@ -78,10 +78,10 @@ public class Step3TransformedFilenames extends WizardPage {
             String profileName = entry.getKey();
             filenames[i][0] = entry.getKey();
             String name = profileName.split("\\.")[0];
-            filenames[i][1] = name + ".permissionset-meta.xml";
+            filenames[i][1] = name;
             if (!standAlonePermSet.isEmpty()) {
                 for (String permCat : standAlonePermSet) {
-                    filenames[++i][1] = name + " - " + permCat + ".permissionset-meta.xml";
+                    filenames[++i][1] = name + " - " + permCat;
                 }
             }
             ++i;

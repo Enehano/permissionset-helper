@@ -1,5 +1,9 @@
 import com.formdev.flatlaf.FlatLightLaf;
+import com.sforce.soap.metadata.MetadataConnection;
+import com.sforce.ws.ConnectionException;
 import gui.MainNavDialog;
+import utils.FileBasedDeployAndRetrieve;
+import utils.MetadataLoginUtil;
 
 import java.awt.*;
 
@@ -21,6 +25,15 @@ public class App {
         dialog.setSize(new Dimension(1000, 300));
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
+
+        //todo move to action listener once created
+        try {
+            MetadataConnection metadataConnection = MetadataLoginUtil.login();
+            FileBasedDeployAndRetrieve tool = new FileBasedDeployAndRetrieve(metadataConnection);
+            tool.retrieveZip();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 }

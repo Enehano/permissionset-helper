@@ -18,6 +18,7 @@ package gui;
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
 import entity.PermissionSet;
+import gui.utils.HintTextField;
 import utils.PermSetComparator;
 import utils.ProfileFactory;
 
@@ -64,6 +65,7 @@ public class Step4RemoveDuplicates extends WizardPage {
                     for (PermissionSet s : l) {
                         if (comparator.compare(entry.getValue(), s) == 0) {
                             contains = true;
+                            break;
                         }
                     }
                     if (!contains) {
@@ -90,7 +92,7 @@ public class Step4RemoveDuplicates extends WizardPage {
         int i = 0;
         for (Map.Entry<PermissionSet, List<String>> entry : filteredDuplicates.entrySet()) {
             filenames[i][0] = Arrays.toString(entry.getValue().toArray());
-            filenames[i][2] = ".permissionset-meta.xml";
+          //  filenames[i][2] = new HintTextField("TBS");
             i++;
         }
 

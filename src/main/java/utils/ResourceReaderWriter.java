@@ -40,7 +40,7 @@ public class ResourceReaderWriter {
                         (map, file) -> {                              // Accumulator
                             if (!file.isDirectory()) {
                                 try {
-                                    map.put(file.getName(), (Profile) unmarshaller.unmarshal(file));
+                                    map.put(file.getName().split("\\.")[0], (Profile) unmarshaller.unmarshal(file));
                                 } catch (JAXBException e) {
                                     log.error("Unable to process file " + file.getName() + " - " + e);
                                 }
