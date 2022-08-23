@@ -16,16 +16,16 @@ public class ProfileFactory {
         this.rw = rw;
     }
 
-    // TODO: 24.03.2022 Filter fields with all negative values from profiles
+    // TODO: 24.03.2022 Filter fields with all negative values from profiles (optimization)
 
-    public static Map<String, PermissionSet> processPermissionSets(WizardSettings settings) {
-        Map<String, Profile> profilesMap = (Map<String, Profile>) settings.get("profilesMap");
-        List<String> permCatToMove = (List<String>) settings.get("permCatToMove");
+    public static Map<String, PermissionSet> processPermissionSets(WizardSettings cachedSettings) {
+        Map<String, Profile> profilesMap = (Map<String, Profile>) cachedSettings.get("profilesMap");
+        List<String> permCatToMove = (List<String>) cachedSettings.get("permCatToMove");
 
-        List<String> standAlonePermSet = (List<String>) settings.get("standAlonePermSet");
+        List<String> standAlonePermSet = (List<String>) cachedSettings.get("standAlonePermSet"); //todo
 
         Map<String, PermissionSet> permissionSetMap = new LinkedHashMap<>();
-        TableModel model = (TableModel) settings.get("filenamesDataModel");
+        TableModel model = (TableModel) cachedSettings.get("filenamesDataModel");
         for (int i = 0; i < model.getRowCount(); i++) {
             permissionSetMap.put((String) model.getValueAt(i, 1),
                     ProfileFactory.createPermissionSet(profilesMap.get((String) model.getValueAt(i, 0)), new HashSet<>(permCatToMove)));
@@ -142,7 +142,7 @@ public class ProfileFactory {
     private static PermissionSet createPermissionSet(Profile profile, Set<String> permCatToMove) {
 
         PermissionSet permissionSet = new PermissionSet();
-        // todo move to constants - or better create Enum
+        // todo create Enum and switch
         if (permCatToMove.contains("app")) {
             permissionSet.setApplicationVisibilities(profile.getApplicationVisibilities());
         }
@@ -176,16 +176,52 @@ public class ProfileFactory {
         return permissionSet;
     }
 
-    public void processAndSerialize(WizardSettings settings, File outputDir) {
-        rw.serialize(outputDir, processNegativeProfiles(settings), processPermissionSets(settings), processEmptyProfiles(settings));
+    public static Map<PermissionSet, List<String>> filterDuplicates(WizardSettings cachedSettings) {
+
+        Map<String, PermissionSet> objectPerms = (Map<String, PermissionSet>) cachedSettings.get("objectPerms");
+
+        PermSetComparator comparator = new PermSetComparator();
+        HashSet<PermissionSet> l = new HashSet<>();
+
+        Map<PermissionSet, List<String>> duplicates = new HashMap<>();
+
+        for (Map.Entry<String, PermissionSet> entry : objectPerms.entrySet()) {
+            if (l.isEmpty()) {
+                l.add(entry.getValue());
+                duplicates.put(entry.getValue(), new ArrayList(Arrays.asList(entry.getKey())));
+            } else {
+                boolean contains = false;
+                for (PermissionSet s : l) {
+                    if (comparator.compare(entry.getValue(), s) == 0) {
+                        contains = true;
+                        break;
+                    }
+                }
+                if (!contains) {
+                    l.add(entry.getValue());
+                    duplicates.put(entry.getValue(), new ArrayList(Arrays.asList(entry.getKey())));
+                } else {
+                    ArrayList<String> newList = (ArrayList) duplicates.get(entry.getValue());
+                    newList.add(entry.getKey());
+                    duplicates.put(entry.getValue(), newList);
+                }
+            }
+        }
+        return duplicates.entrySet().stream()
+                .filter(x -> x.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private Map<String, Profile> processEmptyProfiles(WizardSettings settings) {
-        Map<String, Profile> profilesMap = (Map<String, Profile>) settings.get("profilesMap");
+    public File processAndSerialize(WizardSettings cachedSettings, File outputDir) {
+        return rw.serialize(outputDir, processNegativeProfiles(cachedSettings), processPermissionSets(cachedSettings), processEmptyProfiles(cachedSettings));
+    }
+
+    private Map<String, Profile> processEmptyProfiles(WizardSettings cachedSettings) {
+        Map<String, Profile> profilesMap = (Map<String, Profile>) cachedSettings.get("profilesMap");
 
         Map<String, Profile> emptyProfilesMap = new LinkedHashMap<>();
 
-        TableModel model = (TableModel) settings.get("filenamesDataModel");
+        TableModel model = (TableModel) cachedSettings.get("filenamesDataModel");
         for (int i = 0; i < model.getRowCount(); i++) {
             emptyProfilesMap.put((String) model.getValueAt(i, 0),
                     ProfileFactory.createEmptyProfile(profilesMap.get((String) model.getValueAt(i, 0))));
@@ -194,13 +230,13 @@ public class ProfileFactory {
         return emptyProfilesMap;
     }
 
-    private Map<String, Profile> processNegativeProfiles(WizardSettings settings) {
+    private Map<String, Profile> processNegativeProfiles(WizardSettings cachedSettings) {
 
-        Map<String, Profile> profilesMap = (Map<String, Profile>) settings.get("profilesMap");
+        Map<String, Profile> profilesMap = (Map<String, Profile>) cachedSettings.get("profilesMap");
 
         Map<String, Profile> profilesWithNegativeValuesMap = new LinkedHashMap<>();
 
-        TableModel model = (TableModel) settings.get("filenamesDataModel");
+        TableModel model = (TableModel) cachedSettings.get("filenamesDataModel");
         for (int i = 0; i < model.getRowCount(); i++) {
             profilesWithNegativeValuesMap.put((String) model.getValueAt(i, 0),
                     ProfileFactory.createProfileWithNegativeValues(profilesMap.get((String) model.getValueAt(i, 0))));

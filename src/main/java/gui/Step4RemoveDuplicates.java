@@ -18,109 +18,39 @@ package gui;
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
 import entity.PermissionSet;
-import gui.utils.HintTextField;
 import utils.PermSetComparator;
 import utils.ProfileFactory;
 
 import javax.swing.*;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class Step4RemoveDuplicates extends WizardPage {
-
-
-    private WizardSettings settings;
+    private WizardSettings cache;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
 
     public Step4RemoveDuplicates() {
         super("Remove Duplicates", "Almost done");
-        initComponents();
+        //initComponents();
     }
 
-    public Step4RemoveDuplicates(WizardSettings settings) {
+    public Step4RemoveDuplicates(WizardSettings cache) {
         super("Remove Duplicates", "Almost done");
-        this.settings = settings;
+        this.cache = cache;
+        processCachedSettings();
         initComponents();
     }
 
     private void initComponents() {
 
-        Map<PermissionSet, List<String>> filteredDuplicates = new HashMap<>();
-
-        if (settings != null) {
-
-            PermSetComparator comparator = new PermSetComparator();
-            HashSet<PermissionSet> l = new HashSet<>();
-            Map<String, PermissionSet> objectPerms = ProfileFactory.processPermissionSets(settings);
-            Map<PermissionSet, List<String>> duplicates = new HashMap<>();
-
-            for (Map.Entry<String, PermissionSet> entry : objectPerms.entrySet()) {
-                if (l.isEmpty()) {
-                    l.add(entry.getValue());
-                    duplicates.put(entry.getValue(), new ArrayList(Arrays.asList(entry.getKey())));
-                } else {
-                    boolean contains = false;
-                    for (PermissionSet s : l) {
-                        if (comparator.compare(entry.getValue(), s) == 0) {
-                            contains = true;
-                            break;
-                        }
-                    }
-                    if (!contains) {
-                        l.add(entry.getValue());
-                        duplicates.put(entry.getValue(), new ArrayList(Arrays.asList(entry.getKey())));
-                    } else {
-                        ArrayList<String> newList = (ArrayList) duplicates.get(entry.getValue());
-                        newList.add(entry.getKey());
-                        duplicates.put(entry.getValue(), newList);
-                    }
-                }
-            }
-
-            filteredDuplicates = duplicates.entrySet().stream()
-                    .filter(x -> x.getValue().size() > 1)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            settings.put("duplicates", filteredDuplicates);
-            settings.put("objectPerms", objectPerms);
-        }
-
-        // Data of the table
-        Object[][] filenames = new Object[filteredDuplicates.size()][3];
-        int i = 0;
-        for (Map.Entry<PermissionSet, List<String>> entry : filteredDuplicates.entrySet()) {
-            filenames[i][0] = Arrays.toString(entry.getValue().toArray());
-          //  filenames[i][2] = new HintTextField("TBS");
-            i++;
-        }
-
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         jTable1.setName("unified");
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-                filenames,
-                new String[]{
-                        "Permission sets", "Unify", "New Name"
-                }
-        ) {
-            Class[] types = new Class[]{
-                    java.lang.String.class, java.lang.Boolean.class, java.lang.Object.class
-            };
-            boolean[] canEdit = new boolean[]{
-                    false, true, true
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types[columnIndex];
-            }
-
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit[columnIndex];
-            }
-        });
+        jTable1.setModel(createSettingsModel());
         jScrollPane1.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
             jTable1.getColumnModel().getColumn(1).setResizable(false);
@@ -142,5 +72,49 @@ public class Step4RemoveDuplicates extends WizardPage {
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 305, Short.MAX_VALUE)
         );
+    }
+
+    private TableModel createSettingsModel() {
+
+        Map<PermissionSet, List<String>> filteredDuplicates = (Map<PermissionSet, List<String>>) cache.get("duplicates");
+
+        // Data of the table
+        Object[][] filenames = new Object[filteredDuplicates.size()][3];
+        int i = 0;
+        for (Map.Entry<PermissionSet, List<String>> entry : filteredDuplicates.entrySet()) {
+            filenames[i][0] = Arrays.toString(entry.getValue().toArray());
+            //  filenames[i][2] = new HintTextField("TBS");
+            i++;
+        }
+        return new javax.swing.table.DefaultTableModel(
+                filenames,
+                new String[]{
+                        "Permission sets", "Unify", "New Name"
+                }
+        ) {
+            Class[] types = new Class[]{
+                    java.lang.String.class, java.lang.Boolean.class, java.lang.Object.class
+            };
+            boolean[] canEdit = new boolean[]{
+                    false, true, true
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types[columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        };
+    }
+
+    private void processCachedSettings() {
+        if( cache!=null ) {
+            Map<String, PermissionSet> objectPerms = ProfileFactory.processPermissionSets(cache);
+            cache.put("objectPerms", objectPerms);
+            Map<PermissionSet, List<String>> filteredDuplicates = ProfileFactory.filterDuplicates(cache);
+            cache.put("duplicates", filteredDuplicates);
+        }
     }
 }

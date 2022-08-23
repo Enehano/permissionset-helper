@@ -17,129 +17,156 @@ package gui;
 
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
+import controller.MetadataController;
+import controller.OAuthController;
 import entity.Profile;
+import gui.utils.PathShortener;
 import jakarta.xml.bind.JAXBException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import utils.ResourceReaderWriter;
+import utils.*;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.Map;
 
 public class Step1LoadProfiles extends WizardPage {
-
     private final Logger log = LogManager.getLogger(Step1LoadProfiles.class.getSimpleName());
-    Map<String, Profile> profilesMap = null;
+    public static final String RETRIEVE_FROM_ORG_OPT = "org";
+    boolean retrieveFromOrgSelected = true;
     JFileChooser inputFilesDir;
     File inputDirectory;
-    private WizardSettings settings;
+    private WizardSettings cache;
+    OAuthController loginController;
+    MetadataController metadataController;
 
     public Step1LoadProfiles() {
         super("Load Profiles", "Navigate to input directory");
     }
-
-    // Variables declaration - do not modify
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton loadProfilesButton;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton logToSandboxButton;
+    private javax.swing.JButton logToProdButton;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel chosenDirectoryLabel;
+    private javax.swing.JLabel profilesLoadedLabel;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JButton jPanel1;
     private javax.swing.JButton jPanel2;
-    private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
-    private javax.swing.JProgressBar jProgressBar1;
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
+
     /**
      * Creates new form Step1LoadProfiles
      */
-    public Step1LoadProfiles(WizardSettings settings) {
-        super("Load Profiles", "Navigate to input directory");
-        this.settings = settings;
-        inputFilesDir = new JFileChooser();
-        inputFilesDir.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    public Step1LoadProfiles(WizardSettings cache) {
+        super("Load Profiles", "Navigate to input directory or login to Salesforce Instance");
+        this.cache = cache;
         initComponents();
-        setFinishEnabled(false);
-        setNextEnabled(true);
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void radioButtonActionPerformed(java.awt.event.ActionEvent e) {
+        retrieveFromOrgSelected = e.getActionCommand().equals(RETRIEVE_FROM_ORG_OPT);
+        jButton1.setEnabled(!retrieveFromOrgSelected);
+        jRadioButton1.setEnabled(!retrieveFromOrgSelected);
+        logToSandboxButton.setEnabled(retrieveFromOrgSelected);
+        logToProdButton.setEnabled(retrieveFromOrgSelected);
+    }
+
+    private void chooseDirButtonClicked(java.awt.event.ActionEvent evt) {
         int option = inputFilesDir.showOpenDialog(this);
         if (option == JFileChooser.APPROVE_OPTION) {
             inputDirectory = inputFilesDir.getSelectedFile();
-            jLabel13.setText(inputDirectory.getPath());
+            chosenDirectoryLabel.setText(PathShortener.shortenPath(inputDirectory.getPath(), 2));
             log.info("Folder Selected: " + inputDirectory.getName());
         } else {
             log.info("Open command canceled");
         }
+        loadProfilesButton.setEnabled(true);
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
-        doProcess(inputDirectory);
-    }
+    private void loadProfilesButtonClicked(java.awt.event.ActionEvent evt) {
 
-    void doProcess(File inputDirectory) {
+        if(retrieveFromOrgSelected) {
 
-        //todo show processing
+            loadProfilesButton.setText("Retrieving...");
+            loadProfilesButton.setEnabled(false);
+            setPrevEnabled(false);
+            setNextEnabled(false);
 
-        jTextField1.setText("processing");
-        jTextField1.setEnabled(false);
-        jButton1.setEnabled(false);
-        setPrevEnabled(false);
-        setNextEnabled(false);
+            if (OAuthController.getToken() != null) {
+                SwingUtilities.invokeLater(() -> {
+                    Map<String, Profile> profilesMap = null;
+                    try {
+                        metadataController = new MetadataController();
+                        inputDirectory = ResourceReaderWriter.moveToProfilesFolder(metadataController.retrieveProfilesFromOrg());
+                        profilesMap = ResourceReaderWriter.parseProfiles(inputDirectory);
+                    } catch (Exception e) {
+                        log.error(e);
+                    }
+                    jButton1.setEnabled(true);
+                    loadProfilesButton.setEnabled(true);
+                    loadProfilesButton.setText("Load Profiles");
 
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    profilesMap = ResourceReaderWriter.parseProfiles(inputDirectory);
-                } catch (JAXBException | IOException e) {
-                    log.error(e);
-                }
+                    setNextEnabled(true);
 
-                setNextEnabled(true);
-//                } catch (IOException | InterruptedException ex) {
-//                    log.error("{}", ex.getMessage());
-//                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-//                }
-                jButton1.setEnabled(true);
-
+                    if (profilesMap != null) {
+                        cache.put("profilesMap", profilesMap);
+                        profilesLoadedLabel.setText(profilesMap.size() + " Profiles loaded");
+                    }
+                });
+            }
+        } else {
+            try {
+                Map<String, Profile> profilesMap = ResourceReaderWriter.parseProfiles(inputDirectory);
                 if (profilesMap != null) {
+                    cache.put("profilesMap", profilesMap);
+                    profilesLoadedLabel.setText(profilesMap.size() + " Profiles loaded");
+                }
+            } catch (JAXBException | IOException e ) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-                    settings.put("profilesMap", profilesMap);
-                    jLabel14.setText("Loaded " + profilesMap.size() + " profiles");
-
+    private void logToProdButtonClicked(ActionEvent evt) {
+        loginController = new OAuthController( Config.OAUTH_PROD_SERVER_VAL );
+        SwingUtilities.invokeLater(() -> {
+            while(true){
+                if (loginController.isLoginProcessCompleted()) {
+                    loadProfilesButton.setEnabled(true);
+                    break;
                 }
             }
         });
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">
+    private void logToSandboxButtonClicked(ActionEvent evt) {
+        loginController = new OAuthController(Config.OAUTH_SB_SERVER_VAL);
+        SwingUtilities.invokeLater(() -> {
+            while (true) {
+                if (loginController.isLoginProcessCompleted()) {
+                    loadProfilesButton.setEnabled(true);
+                    break;
+                }
+            }
+        });
+    }
+
+
     private void initComponents() {
+
+        inputFilesDir = new JFileChooser();
+        inputFilesDir.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
         jPanel1 = new javax.swing.JButton();
         jRadioButton1 = new javax.swing.JRadioButton();
@@ -150,32 +177,56 @@ public class Step1LoadProfiles extends WizardPage {
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
-        jPanel3 = new javax.swing.JPanel();
-        jTextField1 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jTextField4 = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
-        jLabel13 = new javax.swing.JLabel();
+        chosenDirectoryLabel = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
-        jProgressBar1 = new javax.swing.JProgressBar();
-        jButton2 = new javax.swing.JButton();
+        loadProfilesButton = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
+        profilesLoadedLabel = new javax.swing.JLabel();
         jButton3 = new javax.swing.JButton();
-        jLabel14 = new javax.swing.JLabel();
+        logToSandboxButton = new javax.swing.JButton();
+        logToProdButton = new javax.swing.JButton();
 
-        jPanel1.setBackground(new java.awt.Color(204, 255, 255));
+        jButton1.setEnabled(false);
+        jRadioButton1.setSelected(true);
+        jRadioButton1.setEnabled(true);
 
-        jRadioButton1.setBackground(new java.awt.Color(204, 255, 255));
+        ButtonGroup group = new ButtonGroup();
+        group.add(jRadioButton1);
+        group.add(jRadioButton2);
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("C:\\Users\\admin\\Desktop\\ZASRANÝ BESTY\\money.jpg")); // NOI18N
+        jButton3.setEnabled(false);
 
-        jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize() + 5));
+        jPanel1.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jPanel1.setFocusPainted(true);
+                jRadioButton1.doClick();
+                jPanel2.setFocusPainted(false);
+            }
+        });
+
+        jPanel2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                jPanel2.setFocusPainted(true);
+                jRadioButton2.doClick();
+                jPanel1.setFocusPainted(false);
+            }
+        });
+
+        jRadioButton1.setActionCommand(RETRIEVE_FROM_ORG_OPT);
+        jRadioButton1.addActionListener(e -> radioButtonActionPerformed(e));
+        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                radioButtonActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage2.png"));
+
+        jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize()+5));
         jLabel4.setText("Retrieve from Org");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -185,33 +236,32 @@ public class Step1LoadProfiles extends WizardPage {
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
                                 .addComponent(jRadioButton1)
-                                .addGap(30, 30, 30)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addContainerGap(103, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 133, Short.MAX_VALUE)
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                                .addContainerGap())
+                                        .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         jPanel1Layout.setVerticalGroup(
                 jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jRadioButton1))
-                                .addGap(18, 18, 18)
-                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(31, Short.MAX_VALUE))
+                                        .addGroup(jPanel1Layout.createSequentialGroup()
+                                                .addComponent(jRadioButton1)
+                                                .addGap(0, 0, Short.MAX_VALUE))
+                                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
-        jPanel2.setBackground(new java.awt.Color(204, 255, 204));
-
-        jRadioButton2.setBackground(new java.awt.Color(204, 255, 204));
         jRadioButton2.setMaximumSize(new java.awt.Dimension(42, 42));
         jRadioButton2.setMinimumSize(new java.awt.Dimension(42, 42));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon("C:\\Users\\admin\\Desktop\\ZASRANÝ BESTY\\cert.png")); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage6.png")); // NOI18N
 
-        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize() + 5));
+        jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+5));
         jLabel3.setText("Load from Filesystem");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -220,96 +270,47 @@ public class Step1LoadProfiles extends WizardPage {
                 jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
+                                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 1, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(8, 8, 8)
                                 .addComponent(jRadioButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(27, 27, 27)
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                // .addGap(27, 27, 27)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 115, Short.MAX_VALUE)
+                                .addGroup(jPanel2Layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
                                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 76, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addContainerGap(83, Short.MAX_VALUE))
+                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 154, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addContainerGap(0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
                 jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(jRadioButton2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
+                                .addGap(5, 5, 5)
                                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addContainerGap())
                         .addGroup(jPanel2Layout.createSequentialGroup()
                                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 338, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        jLabel5.setText("Org URL");
-
-        jLabel6.setText("Username");
-
-        jLabel7.setText("Password");
-
-        jLabel8.setText("Token");
-
-        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
-        jPanel3.setLayout(jPanel3Layout);
-        jPanel3Layout.setHorizontalGroup(
-                jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jTextField3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 283, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
-        jPanel3Layout.setVerticalGroup(
-                jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                                .addGap(0, 5, Short.MAX_VALUE)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jTextField4, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
-
         jButton1.setText("Choose Directory");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                chooseDirButtonClicked(evt);
             }
         });
 
-        jLabel13.setFont(new java.awt.Font("Tahoma", 2, 11)); // NOI18N
-        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel13.setText("No Directory Chosen");
+        chosenDirectoryLabel.setFont(new java.awt.Font("Tahoma", 2, 11)); // NOI18N
+        chosenDirectoryLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        chosenDirectoryLabel.setText("No Directory Chosen");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
                 jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel13, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(chosenDirectoryLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jButton1)
@@ -319,7 +320,7 @@ public class Step1LoadProfiles extends WizardPage {
                 jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                                 .addContainerGap(60, Short.MAX_VALUE)
-                                .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(chosenDirectoryLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(62, 62, 62))
@@ -327,39 +328,51 @@ public class Step1LoadProfiles extends WizardPage {
 
         jPanel6.setLayout(new java.awt.GridLayout());
 
-        jButton2.setText("Process");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-        jPanel6.add(jButton2);
+        loadProfilesButton.setText("Load Profiles");
+        loadProfilesButton.setEnabled(false);
+        loadProfilesButton.addActionListener(evt -> loadProfilesButtonClicked(evt));
+        jPanel6.add(loadProfilesButton);
 
         jPanel7.setLayout(new java.awt.GridLayout());
 
-        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel14.setText("Loaded 35 Profiles / Error xXXXXxxxx");
-        jPanel7.add(jLabel14);
+        profilesLoadedLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        profilesLoadedLabel.setText("0 Profiles Loaded");
+        jPanel7.add(profilesLoadedLabel);
 
         jButton3.setText("Inspect and Compare");
-
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                // yea nah
+            }
+        });
         jPanel7.add(jButton3);
+
+        logToSandboxButton.setText("Log into Sandbox");
+        logToSandboxButton.setActionCommand("Log into Sandbox");
+        logToSandboxButton.addActionListener(evt -> logToSandboxButtonClicked(evt));
+
+        logToProdButton.setText("Log into Production");
+        logToProdButton.setActionCommand("Log into Production");
+        logToProdButton.addActionListener(evt -> logToProdButtonClicked(evt));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGap(112, 112, 112)
+                                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(logToProdButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(logToSandboxButton, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(jPanel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         layout.setVerticalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -367,16 +380,29 @@ public class Step1LoadProfiles extends WizardPage {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                         .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addGap(62, 62, 62)
+                                                .addComponent(logToSandboxButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGap(18, 18, 18)
+                                                .addComponent(logToProdButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
                                 .addContainerGap())
         );
+
+        jRadioButton2.setActionCommand("file");
+        jRadioButton2.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                radioButtonActionPerformed(e);
+            }
+        });
     }// </editor-fold>
 
 }

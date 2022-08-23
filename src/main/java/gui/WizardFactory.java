@@ -61,34 +61,10 @@ public class WizardFactory extends AbstractPageFactory {
     @Override
     public WizardPage createPage(List<WizardPage> path, WizardSettings settings) {
         log.info("creating page " + path.size());
-
-        // Get the next page to display.  The path is the list of all wizard
-        // pages that the user has proceeded through from the start of the
-        // wizard, so we can easily see which step the user is on by taking
-        // the length of the path.  This makes it trivial to return the next
-        // WizardPage:
         WizardPage page = buildPage(path.size(), settings);
-
-
-        // if we wanted to, we could use the WizardSettings object like a
-        // Map<String, Object> to change the flow of the wizard pages.
-        // In fact, we can do arbitrarily complex computation to determine
-        // the next wizard page.
-
         log.debug("Returning page: " + page);
         return page;
 
-        // in this example, we have a panel that will skip a step in the wizard
-        // since it's skipping, we need to calculate what the next panel should be
-        // based on the last item viewed.
-        /*WizardPage lastViewed = path.get(path.size() - 1);
-        for (int i = 0; i < pages.length; i++) {
-            if (pages[i] == lastViewed) {
-                log.info("Returning page: " + pages[i + 1]);
-                return pages[i + 1];
-            }
-        }
-         */
     }
 
 }

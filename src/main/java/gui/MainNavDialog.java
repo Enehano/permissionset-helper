@@ -86,21 +86,26 @@ public class MainNavDialog extends javax.swing.JDialog {
         jListNavigation.setModel(new AbstractListModel<String>() {
             @Override
             public int getSize() {
-                return factory.pages.length;
+                return factory.pages.length * 5;
             }
 
             @Override
             public String getElementAt(int index) {
-                return factory.pages[index].getTitle();
+                if(index < 4){
+                    return " ";
+                } else if (index % 5 == 4) {
+                    return factory.pages[index/5].getTitle();
+                } else {
+                    return  "↓";
+                }
             }
         });
 
         //hightlight the first item since that's the start position of the wizard
-        jListNavigation.setSelectedIndex(0);
-
-        //TODO this is set to false to prevent users from selecting another list item
-        //since there's no clear way to jump to a specific wizard page
+        jListNavigation.setSelectedIndex(4);
         jListNavigation.setEnabled(false);
+        DefaultListCellRenderer renderer = (DefaultListCellRenderer) jListNavigation.getCellRenderer();
+        renderer.setHorizontalAlignment(SwingConstants.CENTER);
         jScrollPane1.setViewportView(jListNavigation);
 
         // Set up the standard bookkeeping stuff for a dialog, and
@@ -119,17 +124,15 @@ public class MainNavDialog extends javax.swing.JDialog {
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addGroup(GroupLayout.Alignment.CENTER, layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.CENTER)
                                         .addComponent(wc, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE))
+                                        .addGap(50)
+                                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 304, Short.MAX_VALUE))
                                 .addContainerGap())
         );
-
         pack();
-
     }
-
 }

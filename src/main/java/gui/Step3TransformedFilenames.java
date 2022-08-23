@@ -29,9 +29,7 @@ import java.util.Map;
 public class Step3TransformedFilenames extends WizardPage {
 
     private final Logger log = LogManager.getLogger(Step3TransformedFilenames.class.getSimpleName());
-
-    WizardSettings settings;
-
+    WizardSettings cache;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
 
@@ -39,9 +37,10 @@ public class Step3TransformedFilenames extends WizardPage {
         super("Transform", "Step 3");
     }
 
-    public Step3TransformedFilenames(WizardSettings settings) {
+    public Step3TransformedFilenames(WizardSettings cache) {
         super("Transform", "Step 3");
-        this.settings = settings;
+        this.cache = cache;
+        processStep2Settings();
         initComponents();
     }
 
@@ -49,27 +48,28 @@ public class Step3TransformedFilenames extends WizardPage {
 
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        jTable1.setModel(createSettingsModel());
+        jScrollPane1.setViewportView(jTable1);
 
-        //todo presunout logiku
+        cache.put("filenamesDataModel", jTable1.getModel());
 
-        Map<String, Profile> profilesMap = (Map<String, Profile>) settings.get("profilesMap");
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
+        );
+    }
 
-        List<String> standAlonePermSet = new LinkedList<>();
-        List<String> permCatToMove = new LinkedList<>();
+    private TableModel createSettingsModel() {
 
-        TableModel model = (TableModel) settings.get("config");
-        for (int i = 0; i < model.getRowCount(); i++) {
-            if (model.getValueAt(i, 1) != null && (Boolean) model.getValueAt(i, 1)) {
-                permCatToMove.add((String) model.getValueAt(i, 0));
-            }
-            if (model.getValueAt(i, 2) != null && (Boolean) model.getValueAt(i, 2)) {
-                standAlonePermSet.add((String) model.getValueAt(i, 0));
-            }
-        }
-
-        settings.put("standAlonePermSet", standAlonePermSet);
-        settings.put("permCatToMove", permCatToMove);
-
+        Map<String, Profile> profilesMap = (Map<String, Profile>) cache.get("profilesMap");
+        List<String> permCatToMove = (List<String>) cache.get("permCatToMove");
+        List<String> standAlonePermSet = (List<String>) cache.get("standAlonePermSet");
 
         // Data of the table
         Object[][] filenames = new Object[profilesMap.size() * (standAlonePermSet.size() + 1)][2];
@@ -86,8 +86,7 @@ public class Step3TransformedFilenames extends WizardPage {
             }
             ++i;
         }
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        return new javax.swing.table.DefaultTableModel(
                 filenames,
                 new String[]{
                         "Profile name", "Permission set name"
@@ -107,20 +106,25 @@ public class Step3TransformedFilenames extends WizardPage {
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit[columnIndex];
             }
-        });
-        jScrollPane1.setViewportView(jTable1);
+        };
+    }
 
-        settings.put("filenamesDataModel", jTable1.getModel());
+    private void processStep2Settings() {
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE)
-        );
+        List<String> standAlonePermSet = new LinkedList<>();
+        List<String> permCatToMove = new LinkedList<>();
+
+        TableModel model = (TableModel) cache.get("config");
+        for (int i = 0; i < model.getRowCount(); i++) {
+            if (model.getValueAt(i, 1) != null && (Boolean) model.getValueAt(i, 1)) {
+                permCatToMove.add((String) model.getValueAt(i, 0));
+            }
+            if (model.getValueAt(i, 2) != null && (Boolean) model.getValueAt(i, 2)) {
+                standAlonePermSet.add((String) model.getValueAt(i, 0));
+            }
+        }
+
+        cache.put("standAlonePermSet", standAlonePermSet);
+        cache.put("permCatToMove", permCatToMove);
     }
 }

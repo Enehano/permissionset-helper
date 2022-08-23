@@ -18,45 +18,40 @@ package gui;
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableModel;
 import java.util.Vector;
 
 public class Step2SelectPermissions extends WizardPage {
-
-    WizardSettings settings;
-
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable permissionSettingsTable;
 
     public Step2SelectPermissions() {
         super("Select Permissions", "");
     }
 
-    public Step2SelectPermissions(WizardSettings settings) {
+    public Step2SelectPermissions(WizardSettings cache) {
         super("Select Permissions", "");
-        this.settings = settings;
         initComponents();
+        cache.put("config", permissionSettingsTable.getModel());
     }
-
     @Override
     public void updateSettings(WizardSettings settings) {
         super.updateSettings(settings);
     }
 
-    private void initComponents() {
-
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+    private TableModel initPermSettingsModel() {
+        return new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {"object", true, null},
-                        {"field", true, null},
-                        {"custom", true, null},
-                        {"class", true, null},
-                        {"record type", true, null},
-                        {"page", true, null},
-                        {"app", true, null},
-                        {"user", true, null},
+                        {"object", true, null},  //
+                        {"field", true, null},  //
+                        {"custom", false, null},
+                        {"class", false, null},
+                        {"record type", false, null},
+                        {"page", false, null},
+                        {"app", false, null},
+                        {"user", true, null},  //
                 },
                 new String[]{
                         "permission type", "move to permission set", "create stand-alone permission set"
@@ -68,7 +63,6 @@ public class Step2SelectPermissions extends WizardPage {
             boolean[] canEdit = new boolean[]{
                     false, true, false
             };
-
             public Class getColumnClass(int columnIndex) {
                 return types[columnIndex];
             }
@@ -86,15 +80,26 @@ public class Step2SelectPermissions extends WizardPage {
                 }
                 return true;
             }
-        });
+        };
+    }
 
-        settings.put("config", jTable1.getModel());
+    private void initComponents() {
 
-        jScrollPane1.setViewportView(jTable1);
-        if (jTable1.getColumnModel().getColumnCount() > 0) {
-            jTable1.getColumnModel().getColumn(1).setResizable(false);
-            jTable1.getColumnModel().getColumn(2).setResizable(false);
+        jScrollPane1 = new javax.swing.JScrollPane();
+        permissionSettingsTable = new javax.swing.JTable();
+        permissionSettingsTable.setModel(initPermSettingsModel());
+        permissionSettingsTable.setRowHeight(25);
+        jScrollPane1.setViewportView(permissionSettingsTable);
+        if (permissionSettingsTable.getColumnModel().getColumnCount() > 0) {
+            permissionSettingsTable.getColumnModel().getColumn(1).setResizable(false);
+            permissionSettingsTable.getColumnModel().getColumn(2).setResizable(false);
+            DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+            centerRenderer.setHorizontalAlignment(JLabel.CENTER);
+           // centerRenderer.setBorder(new BorderUIResource.CompoundBorderUIResource(jScrollPane1.getBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 20, 0, 0)));
+            permissionSettingsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
         }
+
+      //  jScrollPane1.setBorder(new BorderUIResource.CompoundBorderUIResource(jScrollPane1.getBorder(), javax.swing.BorderFactory.createEmptyBorder(0, 20, 0, 0)));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

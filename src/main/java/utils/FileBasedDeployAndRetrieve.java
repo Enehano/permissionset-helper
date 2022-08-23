@@ -5,6 +5,8 @@ import java.util.*;
 
 import javax.xml.parsers.*;
 
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -17,63 +19,12 @@ public class FileBasedDeployAndRetrieve {
 
     private MetadataConnection metadataConnection;
 
-    private static final String ZIP_FILE = "src/main/resources/profiles.zip";
-
-    // manifest file that controls which components get retrieved
-    private static final String MANIFEST_FILE = "src/main/resources/package.xml";
-
-    private static final double API_VERSION = 29.0;
-
-    // one second in milliseconds
-    private static final long ONE_SECOND = 1000;
-
-    // maximum number of attempts to deploy the zip file
-    private static final int MAX_NUM_POLL_REQUESTS = 50;
-
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     public FileBasedDeployAndRetrieve(MetadataConnection metadataConnection) {
         this.metadataConnection = metadataConnection;
     }
-
-    public static void main(String[] args) throws Exception {
-        FileBasedDeployAndRetrieve sample = new FileBasedDeployAndRetrieve();
-        sample.run();
-    }
-
     public FileBasedDeployAndRetrieve() {
-    }
-
-    private void run() throws Exception {
-        this.metadataConnection = MetadataLoginUtil.login();
-
-        // Show the options to retrieve or deploy until user exits
-        String choice = getUsersChoice();
-        while (choice != null && !choice.equals("99")) {
-            if (choice.equals("1")) {
-                retrieveZip();
-            } else if (choice.equals("2")) {
-                deployZip();
-            } else {
-                break;
-            }
-            // show the options again
-            choice = getUsersChoice();
-        }
-    }
-
-    /*
-     * Utility method to present options to retrieve or deploy.
-     */
-    private String getUsersChoice() throws IOException {
-        System.out.println(" 1: Retrieve");
-        System.out.println(" 2: Deploy");
-        System.out.println("99: Exit");
-        System.out.println();
-        System.out.print("Enter 1 to retrieve, 2 to deploy, or 99 to exit: ");
-        // wait for the user input.
-        String choice = reader.readLine();
-        return choice != null ? choice.trim() : "";
     }
 
     private void deployZip() throws Exception {
@@ -87,7 +38,7 @@ public class FileBasedDeployAndRetrieve {
             printErrors(result, "Final list of failures:\n");
             throw new Exception("The files were not successfully deployed");
         }
-        System.out.println("The file " + ZIP_FILE + " was successfully deployed\n");
+        System.out.println("The file " + Config.ZIP_FILE + " was successfully deployed\n");
     }
 
     /*
@@ -97,7 +48,7 @@ public class FileBasedDeployAndRetrieve {
         byte[] result = null;
         // We assume here that you have a deploy.zip file.
         // See the retrieve sample for how to retrieve a zip file.
-        File zipFile = new File(ZIP_FILE);
+        File zipFile = new File(Config.ZIP_FILE);
         if (!zipFile.exists() || !zipFile.isFile()) {
             throw new Exception("Cannot find the zip file for deploy() on path:"
                     + zipFile.getAbsolutePath());
@@ -166,10 +117,10 @@ public class FileBasedDeployAndRetrieve {
     }
 
 
-    public void retrieveZip() throws Exception {
+    public String retrieveZipWithProfiles() throws Exception {
         RetrieveRequest retrieveRequest = new RetrieveRequest();
         // The version in package.xml overrides the version in RetrieveRequest
-        retrieveRequest.setApiVersion(API_VERSION);
+        retrieveRequest.setApiVersion(Config.API_VERSION);
         setUnpackaged(retrieveRequest);
 
         AsyncResult asyncResult = metadataConnection.retrieve(retrieveRequest);
@@ -191,20 +142,36 @@ public class FileBasedDeployAndRetrieve {
             }
 
             System.out.println("Writing results to zip file");
-            File resultsFile = new File(ZIP_FILE);
+            File resultsFile = new File(Config.ZIP_FILE);
             FileOutputStream os = new FileOutputStream(resultsFile);
 
             try {
                 os.write(result.getZipFile());
+                return Config.ZIP_FILE;
             } finally {
                 os.close();
             }
+        }
+        return null;
+    }
+
+    public File extractZip() {
+        String source = Config.ZIP_FILE;
+        String destination = Config.RESOURCE_FOLDER + "unpacked/";
+
+        try {
+            ZipFile zipFile = new ZipFile(source);
+            zipFile.extractAll(destination);
+            return new File(destination);
+        } catch (ZipException e) {
+            e.printStackTrace();
+            return null;
         }
     }
 
     private DeployResult waitForDeployCompletion(String asyncResultId) throws Exception {
         int poll = 0;
-        long waitTimeMilliSecs = ONE_SECOND;
+        long waitTimeMilliSecs = Config.ONE_SECOND;
         DeployResult deployResult;
         boolean fetchDetails;
         do {
@@ -212,7 +179,7 @@ public class FileBasedDeployAndRetrieve {
             // double the wait time for the next iteration
 
             waitTimeMilliSecs *= 2;
-            if (poll++ > MAX_NUM_POLL_REQUESTS) {
+            if (poll++ > Config.MAX_NUM_POLL_REQUESTS) {
                 throw new Exception(
                         "Request timed out. If this is a large set of metadata components, " +
                                 "ensure that MAX_NUM_POLL_REQUESTS is sufficient.");
@@ -244,14 +211,14 @@ public class FileBasedDeployAndRetrieve {
     private RetrieveResult waitForRetrieveCompletion(AsyncResult asyncResult) throws Exception {
         // Wait for the retrieve to complete
         int poll = 0;
-        long waitTimeMilliSecs = ONE_SECOND;
+        long waitTimeMilliSecs = Config.ONE_SECOND;
         String asyncResultId = asyncResult.getId();
         RetrieveResult result = null;
         do {
             Thread.sleep(waitTimeMilliSecs);
             // Double the wait time for the next iteration
             waitTimeMilliSecs *= 2;
-            if (poll++ > MAX_NUM_POLL_REQUESTS) {
+            if (poll++ > Config.MAX_NUM_POLL_REQUESTS) {
                 throw new Exception("Request timed out.  If this is a large set " +
                         "of metadata components, check that the time allowed " +
                         "by MAX_NUM_POLL_REQUESTS is sufficient.");
@@ -266,7 +233,7 @@ public class FileBasedDeployAndRetrieve {
 
     private void setUnpackaged(RetrieveRequest request) throws Exception {
         // Edit the path, if necessary, if your package.xml file is located elsewhere
-        File unpackedManifest = new File(MANIFEST_FILE);
+        File unpackedManifest = new File(Config.MANIFEST_FILE);
         System.out.println("Manifest file: " + unpackedManifest.getAbsolutePath());
 
         if (!unpackedManifest.exists() || !unpackedManifest.isFile()) {
@@ -313,7 +280,7 @@ public class FileBasedDeployAndRetrieve {
         PackageTypeMembers[] packageTypesArray =
                 new PackageTypeMembers[listPackageTypes.size()];
         packageManifest.setTypes(listPackageTypes.toArray(packageTypesArray));
-        packageManifest.setVersion(API_VERSION + "");
+        packageManifest.setVersion(Config.API_VERSION + "");
         return packageManifest;
     }
 }
