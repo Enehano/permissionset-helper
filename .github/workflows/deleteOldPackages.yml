@@ -1,0 +1,16 @@
+name: Delete Package Versions
+on:
+  workflow_dispatch:
+    inputs:
+      numOfVersionsToKeep:
+        description: 'Number of versions to keep. Value is count as number of artefacts * number of versions, which should be kept.'
+        required: true
+        default: '12'
+jobs:
+  deleteOldPackages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/delete-package-versions@v2.0.1
+        with:
+          package-name: 'cz.enehano.permissionset-helper'
+          min-versions-to-keep: ${{ github.event.inputs.numOfVersionsToKeep }}
