@@ -146,7 +146,7 @@ public class Step5Output extends WizardPage {
             }
         });
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage2.png"));
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Webp.net-resizeimage2.png")));
 
         jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize()+5));
         jLabel4.setText("   Push to Org");
@@ -185,7 +185,7 @@ public class Step5Output extends WizardPage {
         checkBoxSaveFiles.setMaximumSize(new java.awt.Dimension(42, 42));
         checkBoxSaveFiles.setMinimumSize(new java.awt.Dimension(42, 42));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage6.png")); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Webp.net-resizeimage6.png"))); // NOI18N
 
         jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+5));
         jLabel3.setText("Save to Filesystem");
