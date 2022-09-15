@@ -35,7 +35,7 @@ public class Step5Output extends WizardPage {
     private File outputFilesDir = new File(System.getProperty("user.dir"));
     private ProfileFactory profileFactory;
     private javax.swing.JFileChooser outputDirectory;
-    private javax.swing.JTextField jTextField1;
+    private JTextField jTextField1;
 
     public Step5Output(WizardSettings settings) {
         super("Output Options", "Finished");
