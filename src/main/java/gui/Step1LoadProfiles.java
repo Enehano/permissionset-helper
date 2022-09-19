@@ -17,6 +17,7 @@ package gui;
 
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
+import com.sforce.soap.metadata.MetadataConnection;
 import controller.MetadataController;
 import controller.OAuthController;
 import entity.Profile;
@@ -107,7 +108,9 @@ public class Step1LoadProfiles extends WizardPage {
                 SwingUtilities.invokeLater(() -> {
                     Map<String, Profile> profilesMap = null;
                     try {
-                        metadataController = new MetadataController();
+                        MetadataConnection metadataConnection = MetadataLoginUtil.oauthLogin(OAuthController.getToken());
+                        cache.put("connection", metadataConnection);
+                        metadataController = new MetadataController(metadataConnection);
                         inputDirectory = ResourceReaderWriter.moveToProfilesFolder(metadataController.retrieveProfilesFromOrg());
                         profilesMap = ResourceReaderWriter.parseProfiles(inputDirectory);
                     } catch (Exception e) {
@@ -224,7 +227,7 @@ public class Step1LoadProfiles extends WizardPage {
             }
         });
 
-        jLabel1.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage2.png"));
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Webp.net-resizeimage2.png")));
 
         jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize()+5));
         jLabel4.setText("Retrieve from Org");
@@ -259,7 +262,7 @@ public class Step1LoadProfiles extends WizardPage {
         jRadioButton2.setMaximumSize(new java.awt.Dimension(42, 42));
         jRadioButton2.setMinimumSize(new java.awt.Dimension(42, 42));
 
-        jLabel2.setIcon(new javax.swing.ImageIcon("src/main/resources/Webp.net-resizeimage6.png")); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Webp.net-resizeimage6.png"))); // NOI18N
 
         jLabel3.setFont(jLabel3.getFont().deriveFont(jLabel3.getFont().getStyle() | java.awt.Font.BOLD, jLabel3.getFont().getSize()+5));
         jLabel3.setText("Load from Filesystem");

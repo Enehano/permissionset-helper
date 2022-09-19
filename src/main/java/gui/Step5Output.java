@@ -17,9 +17,10 @@ package gui;
 
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
+import com.sforce.soap.metadata.MetadataConnection;
+import controller.MetadataController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.jetty.server.Response;
 import utils.ProfileFactory;
 import utils.ResourceReaderWriter;
 
@@ -27,19 +28,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class Step5Output extends WizardPage {
     private final Logger log = LogManager.getLogger(Step5Output.class.getSimpleName());
-    private WizardSettings settings;
+    private WizardSettings cachedSettings;
     private File outputFilesDir = new File(System.getProperty("user.dir"));
     private ProfileFactory profileFactory;
     private javax.swing.JFileChooser outputDirectory;
     private JTextField jTextField1;
 
-    public Step5Output(WizardSettings settings) {
+    public Step5Output(WizardSettings cachedSettings) {
         super("Output Options", "Finished");
-        this.settings = settings;
+        this.cachedSettings = cachedSettings;
         initComponents();
     }
 
@@ -84,24 +86,34 @@ public class Step5Output extends WizardPage {
             @Override
             public void run() {
 
+                profileFactory = new ProfileFactory(new ResourceReaderWriter());
+
                 if(checkBoxTransformProfiles.isSelected()){
 
-
-                }
-
-                if(checkBoxPushToOrg.isSelected()){
-
+                    //todo call option in profileFactory.processAndSerialize with just permissions and original profiles
 
                 }
 
                 if(checkBoxSaveFiles.isSelected()){
-                    profileFactory = new ProfileFactory(new ResourceReaderWriter());
-                    File outputDir = profileFactory.processAndSerialize(settings, outputFilesDir);
+                    File outputDir = profileFactory.processAndSerialize(cachedSettings, outputFilesDir);
                     try {
                         Desktop.getDesktop().open(outputDir);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                }
+
+                if(checkBoxPushToOrg.isSelected()){
+                    MetadataConnection connection = (MetadataConnection) cachedSettings.get("connection");
+                    MetadataController metadataController = new MetadataController(connection);
+                    InputStream manifest = (getClass().getResourceAsStream("/package.xml"));
+                    File zipToDeploy = ResourceReaderWriter.createZipToDeploy(outputFilesDir, manifest);
+                    try {
+                        metadataController.deployPermissionsToOrg(zipToDeploy);
+                    } catch (Exception e) {
+                        log.error("Deploy to Org failed", e);
+                    }
+
                 }
 
                 setPrevEnabled(true);

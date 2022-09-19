@@ -24,11 +24,13 @@ public class FileBasedDeployAndRetrieve {
     public FileBasedDeployAndRetrieve(MetadataConnection metadataConnection) {
         this.metadataConnection = metadataConnection;
     }
-    public FileBasedDeployAndRetrieve() {
+
+    public void deployProfilesAndPermissionSets(File zipFile) throws Exception {
+        deployZip(zipFile);
     }
 
-    private void deployZip() throws Exception {
-        byte zipBytes[] = readZipFile();
+    private void deployZip(File zipFile) throws Exception {
+        byte zipBytes[] = readZipFile(zipFile);
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
@@ -41,14 +43,49 @@ public class FileBasedDeployAndRetrieve {
         System.out.println("The file " + Config.ZIP_FILE + " was successfully deployed\n");
     }
 
+    public String retrieveZipWithProfiles() throws Exception {
+        RetrieveRequest retrieveRequest = new RetrieveRequest();
+        // The version in package.xml overrides the version in RetrieveRequest
+        retrieveRequest.setApiVersion(Config.API_VERSION);
+        setUnpackaged(retrieveRequest);
+
+        AsyncResult asyncResult = metadataConnection.retrieve(retrieveRequest);
+        RetrieveResult result = waitForRetrieveCompletion(asyncResult);
+
+        if (result.getStatus() == RetrieveStatus.Failed) {
+            throw new Exception(result.getErrorStatusCode() + " msg: " +
+                    result.getErrorMessage());
+        } else if (result.getStatus() == RetrieveStatus.Succeeded) {
+            // Print out any warning messages
+            StringBuilder stringBuilder = new StringBuilder();
+            if (result.getMessages() != null) {
+                for (RetrieveMessage rm : result.getMessages()) {
+                    stringBuilder.append(rm.getFileName() + " - " + rm.getProblem() + "\n");
+                }
+            }
+            if (stringBuilder.length() > 0) {
+                System.out.println("Retrieve warnings:\n" + stringBuilder);
+            }
+
+            System.out.println("Writing results to zip file");
+            File resultsFile = new File(Config.ZIP_FILE);
+            FileOutputStream os = new FileOutputStream(resultsFile);
+
+            try {
+                os.write(result.getZipFile());
+                return Config.ZIP_FILE;
+            } finally {
+                os.close();
+            }
+        }
+        return null;
+    }
+
     /*
      * Read the zip file contents into a byte array.
      */
-    private byte[] readZipFile() throws Exception {
+    private byte[] readZipFile(File zipFile) throws Exception {
         byte[] result = null;
-        // We assume here that you have a deploy.zip file.
-        // See the retrieve sample for how to retrieve a zip file.
-        File zipFile = new File(Config.ZIP_FILE);
         if (!zipFile.exists() || !zipFile.isFile()) {
             throw new Exception("Cannot find the zip file for deploy() on path:"
                     + zipFile.getAbsolutePath());
@@ -114,45 +151,6 @@ public class FileBasedDeployAndRetrieve {
             stringBuilder.insert(0, messageHeader);
             System.out.println(stringBuilder.toString());
         }
-    }
-
-
-    public String retrieveZipWithProfiles() throws Exception {
-        RetrieveRequest retrieveRequest = new RetrieveRequest();
-        // The version in package.xml overrides the version in RetrieveRequest
-        retrieveRequest.setApiVersion(Config.API_VERSION);
-        setUnpackaged(retrieveRequest);
-
-        AsyncResult asyncResult = metadataConnection.retrieve(retrieveRequest);
-        RetrieveResult result = waitForRetrieveCompletion(asyncResult);
-
-        if (result.getStatus() == RetrieveStatus.Failed) {
-            throw new Exception(result.getErrorStatusCode() + " msg: " +
-                    result.getErrorMessage());
-        } else if (result.getStatus() == RetrieveStatus.Succeeded) {
-            // Print out any warning messages
-            StringBuilder stringBuilder = new StringBuilder();
-            if (result.getMessages() != null) {
-                for (RetrieveMessage rm : result.getMessages()) {
-                    stringBuilder.append(rm.getFileName() + " - " + rm.getProblem() + "\n");
-                }
-            }
-            if (stringBuilder.length() > 0) {
-                System.out.println("Retrieve warnings:\n" + stringBuilder);
-            }
-
-            System.out.println("Writing results to zip file");
-            File resultsFile = new File(Config.ZIP_FILE);
-            FileOutputStream os = new FileOutputStream(resultsFile);
-
-            try {
-                os.write(result.getZipFile());
-                return Config.ZIP_FILE;
-            } finally {
-                os.close();
-            }
-        }
-        return null;
     }
 
     public File extractZip() {
@@ -233,13 +231,11 @@ public class FileBasedDeployAndRetrieve {
 
     private void setUnpackaged(RetrieveRequest request) throws Exception {
         // Edit the path, if necessary, if your package.xml file is located elsewhere
-        File unpackedManifest = new File(Config.MANIFEST_FILE);
-        System.out.println("Manifest file: " + unpackedManifest.getAbsolutePath());
+        InputStream unpackedManifest = (getClass().getResourceAsStream("/package.xml"));
 
-        if (!unpackedManifest.exists() || !unpackedManifest.isFile()) {
+        if(unpackedManifest == null){
             throw new Exception("Should provide a valid retrieve manifest " +
-                    "for unpackaged content. Looking for " +
-                    unpackedManifest.getAbsolutePath());
+                    "for unpackaged content. Looking for package.xml file inside the resource folder.");
         }
 
         // Note that we use the fully quualified class name because
@@ -248,13 +244,12 @@ public class FileBasedDeployAndRetrieve {
         request.setUnpackaged(p);
     }
 
-    private com.sforce.soap.metadata.Package parsePackageManifest(File file)
+    private com.sforce.soap.metadata.Package parsePackageManifest(InputStream inputStream)
             throws ParserConfigurationException, IOException, SAXException {
         com.sforce.soap.metadata.Package packageManifest = null;
         List<PackageTypeMembers> listPackageTypes = new ArrayList<PackageTypeMembers>();
         DocumentBuilder db =
                 DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        InputStream inputStream = new FileInputStream(file);
         Element d = db.parse(inputStream).getDocumentElement();
         for (Node c = d.getFirstChild(); c != null; c = c.getNextSibling()) {
             if (c instanceof Element) {

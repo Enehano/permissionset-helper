@@ -70,7 +70,7 @@ public class ProfileFactory {
         ret.setUserPermissions(inProfile.getUserPermissions().stream()
                 .map(p -> {
                     UserPermissions newP = new UserPermissions();
-                    newP.setName(newP.getName());
+                    newP.setName(p.getName());
                     newP.setEnabled(false);
                     return newP;
                 })
@@ -79,7 +79,7 @@ public class ProfileFactory {
         ret.setCustomPermissions(inProfile.getCustomPermissions().stream()
                 .map(p -> {
                     CustomPermissions newP = new CustomPermissions();
-                    newP.setName(newP.getName());
+                    newP.setName(p.getName());
                     newP.setEnabled(false);
                     return newP;
                 })
@@ -213,7 +213,7 @@ public class ProfileFactory {
     }
 
     public File processAndSerialize(WizardSettings cachedSettings, File outputDir) {
-        return rw.serialize(outputDir, processNegativeProfiles(cachedSettings), processPermissionSets(cachedSettings), processEmptyProfiles(cachedSettings));
+        return rw.serialize(outputDir, processPermissionSets(cachedSettings), processNegativeProfiles(cachedSettings), processEmptyProfiles(cachedSettings));
     }
 
     private Map<String, Profile> processEmptyProfiles(WizardSettings cachedSettings) {

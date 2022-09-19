@@ -8,9 +8,20 @@ import utils.ResourceReaderWriter;
 import java.io.File;
 
 public class MetadataController {
+
+    private MetadataConnection metadataConnection;
+
+    public MetadataController(MetadataConnection metadataConnection) {
+        this.metadataConnection = metadataConnection;
+    }
+
     public File retrieveProfilesFromOrg() throws Exception {
-        MetadataConnection metadataConnection = MetadataLoginUtil.oauthLogin(OAuthController.getToken());
         FileBasedDeployAndRetrieve metadataTool = new FileBasedDeployAndRetrieve(metadataConnection);
         return ResourceReaderWriter.unzip(metadataTool.retrieveZipWithProfiles());
+    }
+
+    public void deployPermissionsToOrg(File zipFile) throws Exception {
+        FileBasedDeployAndRetrieve metadataTool = new FileBasedDeployAndRetrieve(metadataConnection);
+        metadataTool.deployProfilesAndPermissionSets(zipFile);
     }
 }

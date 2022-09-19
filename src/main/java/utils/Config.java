@@ -63,12 +63,14 @@ public class Config {
     public static final String RESOURCE_FOLDER = "src/main/resources/";
     // manifest file that controls which components get retrieved
     public static final String MANIFEST_FILE = RESOURCE_FOLDER + "package.xml";
-    public static final String ZIP_FILE = RESOURCE_FOLDER + "profiles.zip";
+    public static final String ZIP_FILE = "profiles.zip";
     public static final double API_VERSION = 29.0; // todo 54.0 ?
     // one second in milliseconds
     public static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
     public static final int MAX_NUM_POLL_REQUESTS = 50;
+    public static final String PROFILE_METADATA_SUFFIX = ".profile";
+    public static final String PERMISSIONSET_METADATA_SUFFIX = ".permissionset";
 }
 
 

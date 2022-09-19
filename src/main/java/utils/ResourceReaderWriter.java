@@ -1,5 +1,6 @@
 package utils;
 
+import com.github.cjwizard.WizardSettings;
 import entity.PermissionSet;
 import entity.Profile;
 import jakarta.xml.bind.JAXBContext;
@@ -10,20 +11,25 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.nio.file.Files;
+import java.net.URI;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class ResourceReaderWriter {
 
     public static final String RESOURCE_FOLDER = "src/main/resources/";
-    private static final String CLEAN_PROFILE = "/clean_profiles";
-    private static final String NEGATIVE_PROFILE = "/negative_profiles";
-    private static final String PERMISSIONSET = "/permission_sets";
+    private static final String CLEAN_PROFILE_FOLDER = "/clean_profiles";
+    private static final String NEGATIVE_PROFILE_FOLDER_FINAL = "/negative_profiles";
+    private static final String NEGATIVE_PROFILE_FOLDER = "/profiles";
+    private static final String PERMISSIONSET_FOLDER = "/permissionsets";
     private static final String OUTPUT = "/output";
-
+    public static final String UNPACKAGED_PROFILES = "unpackaged/profiles/";
+    public static final String UNPACKED = "unpacked/";
     private static final Logger log = LogManager.getLogger(ResourceReaderWriter.class.getSimpleName());
 
     public static Map<String, Profile> parseProfiles(File resourceDirectory) throws JAXBException, IOException {
@@ -57,7 +63,7 @@ public class ResourceReaderWriter {
     }
 
     public static File unzip(String fileZip) throws IOException {
-        File destDir = new File(RESOURCE_FOLDER + "unpacked/");
+        File destDir = new File(UNPACKED);
         byte[] buffer = new byte[1024];
         ZipInputStream zis = new ZipInputStream(new FileInputStream(fileZip));
         ZipEntry zipEntry = zis.getNextEntry();
@@ -108,7 +114,7 @@ public class ResourceReaderWriter {
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         for (Map.Entry<String, Profile> entry : profilesMap.entrySet()) {
-            marshaller.marshal(entry.getValue(), new File(outDir + "/" + entry.getKey()));
+            marshaller.marshal(entry.getValue(), new File(outDir + "/" + entry.getKey() + Config.PROFILE_METADATA_SUFFIX));
         }
     }
 
@@ -118,7 +124,7 @@ public class ResourceReaderWriter {
         Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         for (Map.Entry<String, PermissionSet> entry : permissionSetMap.entrySet()) {
-            marshaller.marshal(entry.getValue(), new File(outDir + "/" + entry.getKey()));
+            marshaller.marshal(entry.getValue(), new File(outDir + "/" + entry.getKey() + Config.PERMISSIONSET_METADATA_SUFFIX));
         }
     }
 
@@ -147,28 +153,97 @@ public class ResourceReaderWriter {
     * For org retrieved profiles only
     * */
     public static File moveToProfilesFolder(File unpackedFolder) {
-        return new File(unpackedFolder.getPath()+"/unpackaged/profiles/");
+        return new File(UNPACKED + UNPACKAGED_PROFILES);
     }
 
-    public File serialize(File outputFilesDir, Map<String, Profile> profilesWithNegativeValuesMap,
-                          Map<String, PermissionSet> permissionSetMap, Map<String, Profile> emptyProfilesMap) {
+    public static File createZipToDeploy(File outDir, InputStream manifest) {
+        try {
+            Files.copy(manifest, new File(outDir + "/package.xml").toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return compress(outDir.getAbsolutePath());
+    }
+
+    public static File compress(String dirPath) {
+        final Path sourceDir = Paths.get(dirPath);
+        String zipFileName = dirPath.concat(".zip");
+        try {
+            final ZipOutputStream outputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
+            Files.walkFileTree(sourceDir, new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
+                    try {
+                        Path targetFile = sourceDir.relativize(file);
+                        outputStream.putNextEntry(new ZipEntry(targetFile.toString()));
+                        byte[] bytes = Files.readAllBytes(file);
+                        outputStream.write(bytes, 0, bytes.length);
+                        outputStream.closeEntry();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+            outputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new File(zipFileName);
+    }
+
+    public File serializeForDeploy(File outputFilesDir, Map<String, PermissionSet> permissionSetMap, Map<String, Profile> profilesWithNegativeValuesMap) {
 
         File newDir = new File(outputFilesDir.getAbsolutePath() + OUTPUT);
-        File emptyProfilesDir = new File(newDir.getAbsolutePath() + CLEAN_PROFILE);
-        File negativeProfilesDir = new File(newDir.getAbsolutePath() + NEGATIVE_PROFILE);
-        File permissionSetsDir = new File(newDir.getAbsolutePath() + PERMISSIONSET);
-
-        //  Path createDirs = Paths.get(outputFilesDir.getAbsolutePath() + CLEAN_PROFILE + "//.." + NEGATIVE_PROFILE + "//.." + PERMISSIONSET);
+        File permissionSetsDir = new File(newDir.getAbsolutePath() + PERMISSIONSET_FOLDER);
 
         try {
-            Files.createDirectories(newDir.toPath());
-            Files.createDirectories(emptyProfilesDir.toPath());
-            Files.createDirectories(negativeProfilesDir.toPath());
-            Files.createDirectories(permissionSetsDir.toPath());
 
+            Files.createDirectories(newDir.toPath());
+            Files.createDirectories(permissionSetsDir.toPath());
             ResourceReaderWriter.writePermissionsetFiles(permissionSetMap, permissionSetsDir);
-            ResourceReaderWriter.writeProfileFiles(emptyProfilesMap, emptyProfilesDir);
-            ResourceReaderWriter.writeProfileFiles(profilesWithNegativeValuesMap, negativeProfilesDir);
+
+            if(profilesWithNegativeValuesMap != null ) {
+                File negativeProfilesDir = new File(newDir.getAbsolutePath() + NEGATIVE_PROFILE_FOLDER);
+                Files.createDirectories(negativeProfilesDir.toPath());
+                ResourceReaderWriter.writeProfileFiles(profilesWithNegativeValuesMap, negativeProfilesDir);
+            }
+
+        } catch (IOException e) {
+            log.error("Cannot create directories - " + e);
+            // todo throw new custom exceptions and show on UI
+        } catch (JAXBException e) {
+            log.error("XML marshalling failed - " + e);
+        }
+
+        return new File(newDir.getAbsolutePath());
+    }
+
+    public File serialize(File outputFilesDir, Map<String, PermissionSet> permissionSetMap, Map<String, Profile> profilesWithNegativeValuesMap,
+                          Map<String, Profile> emptyProfilesMap) {
+
+        File newDir = new File(outputFilesDir.getAbsolutePath() + OUTPUT);
+        File permissionSetsDir = new File(newDir.getAbsolutePath() + PERMISSIONSET_FOLDER);
+
+        try {
+
+            Files.createDirectories(newDir.toPath());
+            Files.createDirectories(permissionSetsDir.toPath());
+            ResourceReaderWriter.writePermissionsetFiles(permissionSetMap, permissionSetsDir);
+
+            if(profilesWithNegativeValuesMap != null && emptyProfilesMap != null) {
+
+                File emptyProfilesDir = new File(newDir.getAbsolutePath() + CLEAN_PROFILE_FOLDER);
+                File negativeProfilesDir = new File(newDir.getAbsolutePath() + NEGATIVE_PROFILE_FOLDER);
+
+                Files.createDirectories(emptyProfilesDir.toPath());
+                Files.createDirectories(negativeProfilesDir.toPath());
+
+                ResourceReaderWriter.writeProfileFiles(emptyProfilesMap, emptyProfilesDir);
+                ResourceReaderWriter.writeProfileFiles(profilesWithNegativeValuesMap, negativeProfilesDir);
+
+            }
 
         } catch (IOException e) {
             log.error("Cannot create directories - " + e);
