@@ -52,7 +52,7 @@ Workaround is to run the application multiple times with different selections.
 #### Push to Org
 
 * The changes in permission structure will be pushed to the Salesforce Instance.
-* !IMPORTANT: If you choose to Transform the Profiles, permissions will be erased from the profiles. 
+* **IMPORTANT!**: If you choose to Transform the Profiles, permissions will be erased from the profiles. 
 New permission sets with these permissions will be created and deployed, however, they have to be yet assigned back to the users.
 * TBD: Create and deploy assignments of the newly created permission sets to the users.
 
