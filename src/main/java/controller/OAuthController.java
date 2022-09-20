@@ -34,7 +34,9 @@ public class OAuthController {
         String oAuthTokenURLStr = endpoint + "/services/oauth2/token";
         SimplePost client = SimplePostFactory.getInstance(config, oAuthTokenURLStr,
                 new BasicNameValuePair("response_type", "device_code"),
-                new BasicNameValuePair("client_id", System.getenv("CLIENT_ID")),
+                // try hardcode my CLIENT_ID
+                new BasicNameValuePair("client_id", "3MVG9t0sl2P.pByp5SvgdeEOUdZVhSAs.9uYE.YSgPw5cRVpi7Yb78KopzGVN6jmuSzCiv6KpeXP25it7Jh2H"),
+//                new BasicNameValuePair("client_id", System.getenv("CLIENT_ID")),
                 new BasicNameValuePair("scope", "api")
         );
         try {
