@@ -62,7 +62,6 @@ New permission sets with these permissions will be created and deployed, however
 It should automatically open when Save Metadata is pushed.
 * How to Deploy to Org with Profile cleanup -  manually
   * Deploy metadata from folders “negative profles” and “permission_sets”
-  * Keep metadata from folders “clean profiles” and “permission_sets” in your versioning system repository
   
   
 ## Improvements roadmap - open to contributions
