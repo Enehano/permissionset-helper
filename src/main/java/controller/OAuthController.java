@@ -35,7 +35,7 @@ public class OAuthController {
         SimplePost client = SimplePostFactory.getInstance(config, oAuthTokenURLStr,
                 new BasicNameValuePair("response_type", "device_code"),
                 // try hardcode my CLIENT_ID
-                new BasicNameValuePair("client_id", "3MVG9t0sl2P.pByp5SvgdeEOUdZVhSAs.9uYE.YSgPw5cRVpi7Yb78KopzGVN6jmuSzCiv6KpeXP25it7Jh2H"),
+                new BasicNameValuePair("client_id", Config.OAUTH_CLIENTID_PRESET),
 //                new BasicNameValuePair("client_id", System.getenv("CLIENT_ID")),
                 new BasicNameValuePair("scope", "api")
         );
@@ -101,7 +101,7 @@ public class OAuthController {
                     elapsedTimeInSec += pollingIntervalInSec;
                     client = SimplePostFactory.getInstance(config, oAuthTokenURLStr,
                             new BasicNameValuePair("grant_type", "device"),
-                            new BasicNameValuePair("client_id", System.getenv("CLIENT_ID")),
+                            new BasicNameValuePair("client_id", Config.OAUTH_CLIENTID_PRESET),
                             new BasicNameValuePair("code", deviceCode)
                     );
                     try {

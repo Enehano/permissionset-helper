@@ -46,7 +46,7 @@ public class Config {
     public static final String OAUTH_REFRESHTOKEN = OAUTH_PREFIX + "refreshtoken";
     public static final String OAUTH_SERVER = OAUTH_PREFIX + OAUTH_PARTIAL_SERVER;
     public static final String OAUTH_CLIENTSECRET = OAUTH_PREFIX + OAUTH_PARTIAL_CLIENTSECRET;
-    public static final String OAUTH_CLIENTID = OAUTH_PREFIX + OAUTH_PARTIAL_CLIENTID;
+    public static final String OAUTH_CLIENTID_PRESET = "3MVG9t0sl2P.pByp5SvgdeEOUdZVhSAs.9uYE.YSgPw5cRVpi7Yb78KopzGVN6jmuSzCiv6KpeXP25it7Jh2H";
     public static final String OAUTH_REDIRECTURI = OAUTH_PREFIX + OAUTH_PARTIAL_REDIRECTURI;
     public static final String OAUTH_LOGIN_FROM_BROWSER = OAUTH_PREFIX + "loginfrombrowser";
     public static final String REUSE_CLIENT_CONNECTION = "sfdc.reuseClientConnection";
