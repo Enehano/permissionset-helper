@@ -75,4 +75,11 @@ It should automatically open when Save Metadata is pushed.
    * Backend - support more complex filtering.
 6. Implement the Inspect and Compare feature.
 
+## How to contribute
+
+* Create a fork of this repository.
+* There is a GitHub workflow set to verify and build the application. You can access the build in [artifacts](https://docs.github.com/en/actions/managing-workflow-runs/downloading-workflow-artifacts). 
+* When you're done developing create a pull request with your changes.
+* After the merge to master the build is published to packages.
+
 If you have any questions, please approach me on barbora.sourkova@enehano.cz
