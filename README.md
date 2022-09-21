@@ -35,7 +35,8 @@ In case you wait more than a minute, please restart the app and try again.
 ### Select permissions
 
 * Select permission types that you want to move from selected profiles to the new permission sets
-* TBD: Create stand-alone permission set option is not supported yet
+* TBD: Create stand-alone permission set option is not currently supported. 
+Workaround is to run the application multiple times with different selections.
 
 ### Transform
 
@@ -51,7 +52,7 @@ In case you wait more than a minute, please restart the app and try again.
 #### Push to Org
 
 * The changes in permission structure will be pushed to the Salesforce Instance.
-* !IMPORTANT: If you choose to Transform the Profiles, permissions will be erased from the profiles. 
+* **IMPORTANT!**: If you choose to Transform the Profiles, permissions will be erased from the profiles. 
 New permission sets with these permissions will be created and deployed, however, they have to be yet assigned back to the users.
 * TBD: Create and deploy assignments of the newly created permission sets to the users.
 
@@ -61,4 +62,24 @@ New permission sets with these permissions will be created and deployed, however
 It should automatically open when Save Metadata is pushed.
 * How to Deploy to Org with Profile cleanup -  manually
   * Deploy metadata from folders “negative profles” and “permission_sets”
-  * Keep metadata from folders “clean profiles” and “permission_sets” in your versioning system repository
+  
+  
+## Improvements roadmap - open to contributions
+
+1. Create a report of the transformations done. Preferably as a text or csv file.
+2. Create and deploy assignments of the newly created permission sets to the users.
+3. Add the User Manual as Help to the app.
+4. Display error messages on the UI.
+5. Allow greater granularity in the "permissions to move" selection.
+   * Frontend - allow breakdown of each permission type to atomic permissions.
+   * Backend - support more complex filtering.
+6. Implement the Inspect and Compare feature.
+
+## How to contribute
+
+* Create a fork of this repository.
+* There is a GitHub workflow set to verify and build the application. You can access the build in [artifacts](https://docs.github.com/en/actions/managing-workflow-runs/downloading-workflow-artifacts). 
+* When you're done developing create a pull request with your changes.
+* After the merge to master the build is published to packages.
+
+If you have any questions, please approach me on barbora.sourkova@enehano.cz

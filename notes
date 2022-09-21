@@ -7,7 +7,4 @@ externalDataSourceAccesses
 flowAccesses
 customSettingAccesses
 
--- not in sample (Kofola) project
-
-* how do negative values look like? is it just the booleans switched? 
-* how does blank profile look like? it is just that the fields are deleted?
+-- these are not in older metadata versions
