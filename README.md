@@ -3,7 +3,7 @@ The goal of this project is to implement a utility that transforms and transfers
 
 ## Requirements
 
-Java 18 Runtime
+Java 18 Runtime (Java 11 with new build)
 
 ## User Manual
 
