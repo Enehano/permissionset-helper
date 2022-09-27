@@ -37,6 +37,13 @@ public class Step4RemoveDuplicates extends WizardPage {
         //initComponents();
     }
 
+    @Override
+    public boolean onNext(WizardSettings settings) {
+        if (jTable1.isEditing())
+            jTable1.getCellEditor().stopCellEditing();
+        return super.onNext(settings);
+    }
+
     public Step4RemoveDuplicates(WizardSettings cache) {
         super("Remove Duplicates", "Almost done");
         this.cache = cache;
@@ -55,6 +62,8 @@ public class Step4RemoveDuplicates extends WizardPage {
         if (jTable1.getColumnModel().getColumnCount() > 0) {
             jTable1.getColumnModel().getColumn(1).setResizable(false);
         }
+
+        cache.put("UnifiedFilenamesDataModel", jTable1.getModel());
 
         jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_NEXT_COLUMN);
         TableColumnModel colModel = jTable1.getColumnModel();
@@ -93,7 +102,7 @@ public class Step4RemoveDuplicates extends WizardPage {
                 }
         ) {
             Class[] types = new Class[]{
-                    java.lang.String.class, java.lang.Boolean.class, java.lang.Object.class
+                    java.lang.String.class, java.lang.Boolean.class, java.lang.String.class
             };
             boolean[] canEdit = new boolean[]{
                     false, true, true

@@ -44,14 +44,14 @@ public class Step2SelectPermissions extends WizardPage {
     private TableModel initPermSettingsModel() {
         return new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {"object", true, null},  //
-                        {"field", true, null},  //
+                        {"object", true, null},
+                        {"field", true, null},
                         {"custom", false, null},
                         {"class", false, null},
                         {"record type", false, null},
                         {"page", false, null},
                         {"app", false, null},
-                        {"user", true, null},  //
+                     //   {"user", true, null},
                 },
                 new String[]{
                         "permission type", "move to permission set", "create stand-alone permission set"
@@ -68,17 +68,19 @@ public class Step2SelectPermissions extends WizardPage {
             }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
-                switch (columnIndex) {
-                    case 0:
-                    case 1:
-                        return canEdit[columnIndex];
-                    case 2:
-                        System.out.println(getDataVector());
-                        System.out.println(getDataVector().get(rowIndex));
-                        System.out.println(((Vector) getDataVector().get(rowIndex)).get(1));
-                        return (Boolean) ((Vector) getDataVector().get(rowIndex)).get(1);
-                }
-                return true;
+                // todo uncomment when backend support ready
+//                switch (columnIndex) {
+//                    case 0:
+//                    case 1:
+//                        return canEdit[columnIndex];
+//                    case 2:
+//                        System.out.println(getDataVector());
+//                        System.out.println(getDataVector().get(rowIndex));
+//                        System.out.println(((Vector) getDataVector().get(rowIndex)).get(1));
+//                        return (Boolean) ((Vector) getDataVector().get(rowIndex)).get(1);
+//                }
+//                return true;
+                return canEdit[columnIndex];
             }
         };
     }

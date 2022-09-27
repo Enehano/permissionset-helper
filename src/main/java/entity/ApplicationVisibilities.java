@@ -39,7 +39,7 @@ public class ApplicationVisibilities {
     @XmlElement(required = true)
     protected String application;
     @XmlElement(name = "default")  // todo ONLY IN PROFILE
-    protected boolean _default;
+    protected Boolean _default;
     protected boolean visible;
 
     /**
@@ -70,7 +70,7 @@ public class ApplicationVisibilities {
      * Gets the value of the default property.
      *
      */
-    public boolean isDefault() {
+    public Boolean isDefault() {
         return _default;
     }
 
@@ -78,7 +78,7 @@ public class ApplicationVisibilities {
      * Sets the value of the default property.
      *
      */
-    public void setDefault(boolean value) {
+    public void setDefault(Boolean value) {
         this._default = value;
     }
 

@@ -1,5 +1,9 @@
 package utils;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class Config {
 
     /**
@@ -64,13 +68,25 @@ public class Config {
     // manifest file that controls which components get retrieved
     public static final String MANIFEST_FILE = RESOURCE_FOLDER + "package.xml";
     public static final String ZIP_FILE = "profiles.zip";
-    public static final double API_VERSION = 29.0; // todo 54.0 ?
+    public static final double API_VERSION = 54.0;
     // one second in milliseconds
     public static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
     public static final int MAX_NUM_POLL_REQUESTS = 50;
-    public static final String PROFILE_METADATA_SUFFIX = ".profile";
-    public static final String PERMISSIONSET_METADATA_SUFFIX = ".permissionset";
+    public static final String PROFILE_METADATA_SUFFIX = ".profile-meta.xml";
+    public static final String PERMISSIONSET_METADATA_SUFFIX = ".permissionset-meta.xml";
+    public static final String PROFILE_SUFFIX = ".profile";
+
+    public static final String PERMISSIONSET_SUFFIX = ".permissionset";
+
+    public static final Set<String> UNSUPPORTED_USER_PERMISSIONS = new HashSet<>(Arrays.asList(
+        "AllowUniversalSearch", "AllowViewKnowledge", "ChangeDashboardColors", "EditKnowledge",
+                "EditPublicReports", "EditReports", "EnableCommunityAppLauncher", "ManageCssUsers",
+                "ManageDashboards", "ManageEntitlements", "ManageKnowledge", "ManageKnowledgeImportExport",
+                "ManageSearchPromotionRules", "OmnichannelInventorySync", "Packaging2PromoteVersion",
+            "ShareInternalArticles", "UseOmnichannelInventoryAPIs", "ViewDataLeakageEvents",
+            "ViewPlatformEvents", "WorkCalibrationUser", "ModifyAllData", "ViewAllData", "InstallPackaging",
+            "CreatePackaging", "PublishPackaging"));
 }
 
 

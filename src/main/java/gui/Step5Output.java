@@ -25,10 +25,12 @@ import utils.ProfileFactory;
 import utils.ResourceReaderWriter;
 
 import javax.swing.*;
+import javax.swing.table.TableModel;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
 import java.util.List;
 
 public class Step5Output extends WizardPage {
@@ -88,14 +90,15 @@ public class Step5Output extends WizardPage {
 
                 profileFactory = new ProfileFactory(new ResourceReaderWriter());
 
-                if(checkBoxTransformProfiles.isSelected()){
-
-                    //todo call option in profileFactory.processAndSerialize with just permissions and original profiles
-
-                }
+                // todo optimize files creation (can copy files not double process)
 
                 if(checkBoxSaveFiles.isSelected()){
-                    File outputDir = profileFactory.processAndSerialize(cachedSettings, outputFilesDir);
+                    File outputDir = null;
+                    if(checkBoxTransformProfiles.isSelected()) {
+                        outputDir = profileFactory.processAndSerializeAll(cachedSettings, outputFilesDir);
+                    } else {
+                        outputDir = profileFactory.processAndSerializePermSets(cachedSettings, outputFilesDir);
+                    }
                     try {
                         Desktop.getDesktop().open(outputDir);
                     } catch (IOException e) {
@@ -104,9 +107,16 @@ public class Step5Output extends WizardPage {
                 }
 
                 if(checkBoxPushToOrg.isSelected()){
+
+                    if(checkBoxTransformProfiles.isSelected()) {
+                        profileFactory.processAndSerializeAllDeploy(cachedSettings, outputFilesDir);
+                    } else {
+                        profileFactory.processAndSerializePermSetsDeploy(cachedSettings, outputFilesDir);
+                    }
+
                     MetadataConnection connection = (MetadataConnection) cachedSettings.get("connection");
                     MetadataController metadataController = new MetadataController(connection);
-                    InputStream manifest = (getClass().getResourceAsStream("/package.xml"));
+                    InputStream manifest = (getClass().getResourceAsStream("/deploy_manifest/package.xml"));
                     File zipToDeploy = ResourceReaderWriter.createZipToDeploy(outputFilesDir, manifest);
                     try {
                         metadataController.deployPermissionsToOrg(zipToDeploy);

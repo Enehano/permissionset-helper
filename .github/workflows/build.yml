@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v1
         with:
-          java-version: '17'
+          java-version: '11'
       - name: Build
         run: |
           mvn -B clean install -s settings-ci.xml
@@ -30,7 +30,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
-          java-version: '17'
+          java-version: '11'
       - name: Publish artifact on GitHub Packages
         run: |
           mvn -B deploy -s settings-ci.xml

@@ -39,7 +39,7 @@ import java.util.Objects;
     public class RecordTypeVisibilities {
 
         @XmlElement(name = "default")
-        protected boolean _default;
+        protected Boolean _default;
         protected Boolean personAccountDefault;
         @XmlElement(required = true)
         protected String recordType;
@@ -49,7 +49,7 @@ import java.util.Objects;
          * Gets the value of the default property.
          *
          */
-        public boolean isDefault() {
+        public Boolean isDefault() {
             return _default;
         }
 
@@ -57,7 +57,7 @@ import java.util.Objects;
          * Sets the value of the default property.
          *
          */
-        public void setDefault(boolean value) {
+        public void setDefault(Boolean value) {
             this._default = value;
         }
 

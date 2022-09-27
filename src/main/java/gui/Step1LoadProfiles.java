@@ -18,6 +18,7 @@ package gui;
 import com.github.cjwizard.WizardPage;
 import com.github.cjwizard.WizardSettings;
 import com.sforce.soap.metadata.MetadataConnection;
+import com.sforce.ws.ConnectionException;
 import controller.MetadataController;
 import controller.OAuthController;
 import entity.Profile;
@@ -31,6 +32,8 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 public class Step1LoadProfiles extends WizardPage {
@@ -42,6 +45,7 @@ public class Step1LoadProfiles extends WizardPage {
     private WizardSettings cache;
     OAuthController loginController;
     MetadataController metadataController;
+    MetadataConnection metadataConnection;
 
     public Step1LoadProfiles() {
         super("Load Profiles", "Navigate to input directory");
@@ -53,6 +57,7 @@ public class Step1LoadProfiles extends WizardPage {
     private javax.swing.JButton logToProdButton;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel chosenDirectoryLabel;
+    private javax.swing.JLabel loggedToOrgLabel;
     private javax.swing.JLabel profilesLoadedLabel;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -108,8 +113,6 @@ public class Step1LoadProfiles extends WizardPage {
                 SwingUtilities.invokeLater(() -> {
                     Map<String, Profile> profilesMap = null;
                     try {
-                        MetadataConnection metadataConnection = MetadataLoginUtil.oauthLogin(OAuthController.getToken());
-                        cache.put("connection", metadataConnection);
                         metadataController = new MetadataController(metadataConnection);
                         inputDirectory = ResourceReaderWriter.moveToProfilesFolder(metadataController.retrieveProfilesFromOrg());
                         profilesMap = ResourceReaderWriter.parseProfiles(inputDirectory);
@@ -143,10 +146,27 @@ public class Step1LoadProfiles extends WizardPage {
 
     private void logToProdButtonClicked(ActionEvent evt) {
         loginController = new OAuthController( Config.OAUTH_PROD_SERVER_VAL );
+        callLoginThread();
+    }
+
+    private void callLoginThread() {
         SwingUtilities.invokeLater(() -> {
             while(true){
                 if (loginController.isLoginProcessCompleted()) {
                     loadProfilesButton.setEnabled(true);
+                    try {
+                        metadataConnection = MetadataLoginUtil.oauthLogin(OAuthController.getToken());
+                    } catch (ConnectionException e) {
+                        log.error(e);
+                    }
+                    cache.put("connection", metadataConnection);
+                    try {
+                        URL endpointURL = new URL(metadataConnection.getConfig().getServiceEndpoint());
+                        loggedToOrgLabel.setText("Connected to:" + endpointURL.getHost());
+                    } catch (MalformedURLException e) {
+                        log.warn(e);
+                        loggedToOrgLabel.setText("Login successful!");
+                    }
                     break;
                 }
             }
@@ -155,14 +175,7 @@ public class Step1LoadProfiles extends WizardPage {
 
     private void logToSandboxButtonClicked(ActionEvent evt) {
         loginController = new OAuthController(Config.OAUTH_SB_SERVER_VAL);
-        SwingUtilities.invokeLater(() -> {
-            while (true) {
-                if (loginController.isLoginProcessCompleted()) {
-                    loadProfilesButton.setEnabled(true);
-                    break;
-                }
-            }
-        });
+        callLoginThread();
     }
 
 
@@ -183,6 +196,7 @@ public class Step1LoadProfiles extends WizardPage {
         jPanel5 = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
         chosenDirectoryLabel = new javax.swing.JLabel();
+        loggedToOrgLabel = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
         loadProfilesButton = new javax.swing.JButton();
         jPanel7 = new javax.swing.JPanel();
@@ -231,6 +245,10 @@ public class Step1LoadProfiles extends WizardPage {
 
         jLabel4.setFont(jLabel4.getFont().deriveFont(jLabel4.getFont().getStyle() | java.awt.Font.BOLD, jLabel4.getFont().getSize()+5));
         jLabel4.setText("Retrieve from Org");
+
+        loggedToOrgLabel.setFont(new java.awt.Font("Tahoma", 2, 11)); // NOI18N
+        loggedToOrgLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        loggedToOrgLabel.setText("");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -366,6 +384,7 @@ public class Step1LoadProfiles extends WizardPage {
                         .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(loggedToOrgLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(layout.createSequentialGroup()
                                                 .addGap(112, 112, 112)
@@ -388,7 +407,8 @@ public class Step1LoadProfiles extends WizardPage {
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                         .addGroup(layout.createSequentialGroup()
-                                                .addGap(62, 62, 62)
+                                                .addGap(30, 30, 30)
+                                                .addComponent(loggedToOrgLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addComponent(logToSandboxButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                 .addGap(18, 18, 18)
                                                 .addComponent(logToProdButton, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)))

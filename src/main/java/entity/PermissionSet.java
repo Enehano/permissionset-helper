@@ -8,11 +8,12 @@
 
 package entity;
 
+import com.fasterxml.jackson.databind.util.LinkedNode;
 import jakarta.xml.bind.annotation.*;
+import utils.Config;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -210,6 +211,7 @@ import java.util.Objects;
     "customPermissions",
     "fieldPermissions",
     "layoutAssignments",
+        "label",
     "loginIpRanges",
     "objectPermissions",
     "pageAccesses",
@@ -222,12 +224,13 @@ public class PermissionSet {
 
 //    @XmlElement(required = true)
 //    protected String description;
-//    @XmlElement(required = true)
-//    protected String label;
+
+    @XmlElement(required = true)
+    protected String label;
 //    @XmlElement(required = true)
 //    protected String license;
-////    @XmlElement(required = true)   // deprecated
-////    protected String userLicense;
+//    @XmlElement(required = true)   // deprecated
+//    protected String userLicense;
 //    @XmlElement(required =  true)
 //    protected boolean hasActivationRequired;
 
@@ -258,7 +261,16 @@ public class PermissionSet {
     @XmlElement(required = true)
     protected List<UserPermissions> userPermissions;
 
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
     public void setApplicationVisibilities(List<ApplicationVisibilities> applicationVisibilities) {
+        applicationVisibilities.stream().forEach(a -> a.setDefault(null));
         this.applicationVisibilities = applicationVisibilities;
     }
 
@@ -299,6 +311,7 @@ public class PermissionSet {
     }
 
     public void setRecordTypeVisibilities(List<RecordTypeVisibilities> recordTypeVisibilities) {
+        recordTypeVisibilities.forEach(r -> r.setDefault(null));
         this.recordTypeVisibilities = recordTypeVisibilities;
     }
 
@@ -307,7 +320,9 @@ public class PermissionSet {
     }
 
     public void setUserPermissions(List<UserPermissions> userPermissions) {
-        this.userPermissions = userPermissions;
+        this.userPermissions = userPermissions.stream()
+                .filter(p -> !Config.UNSUPPORTED_USER_PERMISSIONS.contains(p.name))
+                .collect(Collectors.toList());
     }
 
     /**

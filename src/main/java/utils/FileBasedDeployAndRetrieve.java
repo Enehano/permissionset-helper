@@ -17,6 +17,11 @@ import com.sforce.soap.metadata.*;
  */
 public class FileBasedDeployAndRetrieve {
 
+    // one second in milliseconds
+    private static final long ONE_SECOND = 1000;
+    // maximum number of attempts to deploy the zip file
+    private static final int MAX_NUM_POLL_REQUESTS = 50;
+
     private MetadataConnection metadataConnection;
 
     private BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -34,13 +39,53 @@ public class FileBasedDeployAndRetrieve {
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
+//        deployOptions.setAllowMissingFiles(true);
+//        deployOptions.setAutoUpdatePackage(true);
+
         AsyncResult asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
-        DeployResult result = waitForDeployCompletion(asyncResult.getId());
-        if (!result.isSuccess()) {
-            printErrors(result, "Final list of failures:\n");
+        String asyncResultId = asyncResult.getId();
+
+        // Wait for the deploy to complete
+        int poll = 0;
+        long waitTimeMilliSecs = ONE_SECOND;
+        DeployResult deployResult = null;
+        boolean fetchDetails;
+        do {
+            Thread.sleep(waitTimeMilliSecs);
+            // double the wait time for the next iteration
+            waitTimeMilliSecs *= 2;
+            if (poll++ > MAX_NUM_POLL_REQUESTS) {
+                throw new Exception("Request timed out. If this is a large set " +
+                        "of metadata components, check that the time allowed by " +
+                        "MAX_NUM_POLL_REQUESTS is sufficient.");
+            }
+
+            // Fetch in-progress details once for every 3 polls
+            fetchDetails = (poll % 3 == 0);
+            deployResult = metadataConnection.checkDeployStatus(asyncResultId, fetchDetails);
+            System.out.println("Status is: " + deployResult.getStatus());
+            if (!deployResult.isDone() && fetchDetails) {
+                printErrors(deployResult, "Failures for deployment in progress:\n");
+            }
+        }
+        while (!deployResult.isDone());
+
+        if (!deployResult.isSuccess() && deployResult.getErrorStatusCode() != null) {
+            throw new Exception(deployResult.getErrorStatusCode() + " msg: " +
+                    deployResult.getErrorMessage());
+        }
+
+        if (!fetchDetails) {
+            // Get the final result with details if we didn't do it in the last attempt.
+            deployResult = metadataConnection.checkDeployStatus(asyncResultId, true);
+        }
+
+        if (!deployResult.isSuccess()) {
+            printErrors(deployResult, "Final list of failures:\n");
             throw new Exception("The files were not successfully deployed");
         }
-        System.out.println("The file " + Config.ZIP_FILE + " was successfully deployed\n");
+
+        System.out.println("The file " + zipFile + " was successfully deployed");
     }
 
     public String retrieveZipWithProfiles() throws Exception {

@@ -131,21 +131,23 @@
             <version>2.11.0</version>
         </dependency>
 
-        <!-- stored in Enehano's GitHub packages -->
         <dependency>
-            <groupId>com.salesforce</groupId>
+            <groupId>com.force.api</groupId>
             <artifactId>force-wsc</artifactId>
             <version>54.0.0</version>
         </dependency>
+
+        <!-- stored in Enehano's GitHub packages -->
+
         <dependency>
             <groupId>com.salesforce</groupId>
             <artifactId>metadata</artifactId>
-            <version>54.0.0</version>
+            <version>54.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.salesforce</groupId>
             <artifactId>enterprise</artifactId>
-            <version>54.0.0</version>
+            <version>54.0.1</version>
         </dependency>
     </dependencies>
 
@@ -156,8 +158,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
             <plugin>

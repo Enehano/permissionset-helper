@@ -44,6 +44,12 @@ public class Step3TransformedFilenames extends WizardPage {
         initComponents();
     }
 
+    @Override
+    public boolean onNext(WizardSettings settings) {
+        if (jTable1.isEditing())
+            jTable1.getCellEditor().stopCellEditing();
+        return super.onNext(settings);
+    }
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -76,12 +82,12 @@ public class Step3TransformedFilenames extends WizardPage {
         int i = 0;
         for (Map.Entry<String, Profile> entry : profilesMap.entrySet()) {
             String profileName = entry.getKey();
-            filenames[i][0] = entry.getKey();
-            String name = profileName.split("\\.")[0];
-            filenames[i][1] = name;
+            filenames[i][0] = profileName;
+            String permissionSetName = createPermSetName(profileName);
+            filenames[i][1] = permissionSetName;
             if (!standAlonePermSet.isEmpty()) {
                 for (String permCat : standAlonePermSet) {
-                    filenames[++i][1] = name + " - " + permCat;
+                    filenames[++i][1] = permissionSetName + "_" + permCat;
                 }
             }
             ++i;
@@ -107,6 +113,14 @@ public class Step3TransformedFilenames extends WizardPage {
                 return canEdit[columnIndex];
             }
         };
+    }
+    /**
+     * Skip the profile file suffix, remove all special characters and whitespaces
+     * and add _PS suffix (cannot have duplicate API names even if different metadata)
+      */
+    private String createPermSetName(String profileName) {
+        String name = profileName.split("\\.")[0];
+        return name.replaceAll("\\s|%2E|%3A|%C2|%A0|-", "") + "_PS";
     }
 
     private void processStep2Settings() {
