@@ -142,12 +142,12 @@
         <dependency>
             <groupId>com.salesforce</groupId>
             <artifactId>metadata</artifactId>
-            <version>54.0.0</version>
+            <version>54.0.1</version>
         </dependency>
         <dependency>
             <groupId>com.salesforce</groupId>
             <artifactId>enterprise</artifactId>
-            <version>54.0.0</version>
+            <version>54.0.1</version>
         </dependency>
     </dependencies>
 
