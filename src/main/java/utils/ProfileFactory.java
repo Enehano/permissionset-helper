@@ -31,7 +31,7 @@ public class ProfileFactory {
                 String duplicatePermSets = (String) unifiedModel.getValueAt(i, 0);
                 Boolean unify = (Boolean) unifiedModel.getValueAt(i, 1);
                 String unifiedName = (String) unifiedModel.getValueAt(i, 2);
-                if(unify) {
+                if(unify != null && unify) {
                     oldNamesToUnifiedNameMap.put(duplicatePermSets, unifiedName);
                 }
             }
