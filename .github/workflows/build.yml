@@ -8,7 +8,7 @@ on:
 env:
   BUILD_VERSION: 1
   BUILD_NUM: ${BUILD_VERSION}.${GITHUB_RUN_ID}-RELEASE
-  SERVICE_ACCOUNT_PAT_TOKEN: ${{ secrets.SERVICE_ACCOUNT_PAT_TOKEN }}
+  MY_ACCOUNT_PAT_TOKEN: ${{ secrets.MY_ACCOUNT_PAT_TOKEN }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,7 +19,7 @@ jobs:
           java-version: '11'
       - name: Build
         run: |
-          mvn -B clean install -s settings-ci.xml
+          mvn -B -e clean install -s settings-ci.xml
   deploy:
     name: Publish - GitHub Packages
     runs-on: ubuntu-latest
@@ -33,4 +33,4 @@ jobs:
           java-version: '11'
       - name: Publish artifact on GitHub Packages
         run: |
-          mvn -B deploy -s settings-ci.xml
+          mvn -B -e deploy -s settings-ci.xml
