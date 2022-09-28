@@ -3,13 +3,13 @@ The goal of this project is to implement a utility that transforms and transfers
 
 ## Requirements
 
-Java 11 minimum
+Java 11 (11.0.16) and higher
 
 ## User Manual
 
 * Download the JAR executable
 * Optional: Run from command line to monitor errors and messages
-  * java -jar permissionset-helper-XXX.jar
+  * eg. java -jar permissionset-helper-1.3142067864-RELEASE-all-in-one.jar
 
 ### Load Profiles
 
@@ -61,7 +61,7 @@ New permission sets with these permissions will be created and deployed, however
 * The metadata will be saved to an output folder that will be created where the jar is located. 
 It should automatically open when Save Metadata is pushed.
 * How to Deploy to Org with Profile cleanup -  manually
-  * Deploy metadata from folders “negative profles” and “permission_sets”
+  * Deploy metadata with SFDX from folders “profles” and “permission_sets”
   
   
 ## Improvements roadmap - open to contributions
@@ -82,4 +82,4 @@ It should automatically open when Save Metadata is pushed.
 * When you're done developing create a pull request with your changes.
 * After the merge to master the build is published to packages.
 
-If you have any questions, please approach me on barbora.sourkova@enehano.cz
+If you have any questions, please approach us on koala@enehano.com
