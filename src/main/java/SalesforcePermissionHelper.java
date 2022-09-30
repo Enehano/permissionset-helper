@@ -9,12 +9,12 @@ import java.awt.*;
  * This app transforms Salesforce profile metadata files into set of permission set
  * files based on selected configuration. It can also reduce the original profile files
  * in order to optimize and remove duplicities.
- *
+ * <p>
  * CJWizard is a library for creating swing based wizard dialogs in Java.
- * https://github.com/cjwizard/cjwizard
+ * <a href="https://github.com/cjwizard/cjwizard">...</a>
  * <p>
  * FlatLaf is a modern open-source cross-platform Look and Feel for Java Swing desktop applications.
- * https://github.com/JFormDesigner/FlatLaf
+ * <a href="https://github.com/JFormDesigner/FlatLaf">...</a>
  */
 public class SalesforcePermissionHelper {
 
@@ -38,9 +38,7 @@ public class SalesforcePermissionHelper {
             System.setProperty( "apple.awt.application.appearance", "system" );
         }
 
-        // Linux
         if( SystemInfo.isLinux ) {
-            // enable custom window decorations
             JFrame.setDefaultLookAndFeelDecorated( true );
             JDialog.setDefaultLookAndFeelDecorated( true );
         }
